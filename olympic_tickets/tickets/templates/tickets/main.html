@@ -1,0 +1,28 @@
+<!-- templates/tickets/main.html -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}JO 2024{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <header>
+        <h1>Jeux Olympiques 2024</h1>
+        <nav>
+            <a href="{% url 'home' %}">Accueil</a> |
+            <a href="{% url 'bundle_list' %}">Offres</a> |
+            <a href="{% url 'cart' %}">Panier</a>
+        </nav>
+    </header>
+
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <footer>
+        <p>&copy; Paris 2024</p>
+    </footer>
+</body>
+</html>

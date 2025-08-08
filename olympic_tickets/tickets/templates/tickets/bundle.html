@@ -1,0 +1,21 @@
+{% extends 'tickets/main.html' %}
+
+{% block title %}Nos Offres{% endblock %}
+
+{% block content %}
+<h2>Choisissez votre offre</h2>
+
+{% for offer in offers %}
+    <div class="bundle">
+        <h3>{{ offer.name }}</h3>
+        <p>{{ offer.description }}</p>
+        <p><strong>{{ offer.price }} €</strong></p>
+        <form method="post" action="{% url 'add_to_cart' offer.id %}">
+            {% csrf_token %}
+            <button type="submit">Ajouter au panier</button>
+        </form>
+    </div>
+{% empty %}
+    <p>Aucune offre disponible pour le moment.</p>
+{% endfor %}
+{% endblock %}
