@@ -19,6 +19,6 @@ from django.contrib import admin
 from django.urls import path, include
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('', include('tickets.urls')),
+    path('admin/', admin.site.urls),  #donne acces a l interface admin de django
+    path('', include('tickets.urls')),  #envoie tout le reste vers l app tickets
 ]
