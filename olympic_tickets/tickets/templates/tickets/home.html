@@ -1,3 +1,109 @@
+{# templates/tickets/home.html #}
+{% extends 'tickets/main.html' %}
+{% load static %}
+
+{% block title %}Accueil{% endblock %}
+
+{% block content %}
+  <h2 style="margin-bottom:1rem;">Bienvenue aux Jeux Olympiques 2024 !</h2>
+  <p style="margin-bottom:1.5rem;">Les Jeux Olympiques sont la seule compétition véritablement mondiale et
+      multisport. Avec plus de 200 pays participant à plus de 400 épreuves entre les Jeux d’Été et d’Hiver,
+      les Jeux sont le seul endroit où le monde se retrouve pour concourir, se sentir inspiré et
+      être ensemble.</p>
+
+  <h3 style="margin-bottom:1rem;">Épreuves populaires</h3>
+
+  <section class="sport-grid">
+    <!-- Athlétisme -->
+    <article class="sport-card">
+      <img src="{% static 'image/athletisme.jpg' %}" alt="Athlétisme – course sur piste" class="sport-img">
+      <div class="sport-body">
+        <h4>Athlétisme</h4>
+        <p>L’athlétisme est un sport qui comprend de nombreuses épreuves impliquant la course, le saut, le lancer ou la marche.
+            Ce sport regroupe ainsi des épreuves en individuel, comme le 100m, le marathon ou le saut en longueur, ainsi que épreuves
+            combinées, comme le décathlon ou l’heptathlon, ou des épreuves par équipe, à l’image du relais 4x100m.</p>
+        <a class="btn" href="{% url 'bundle_list' %}">Voir les offres</a>
+      </div>
+    </article>
+
+    <!-- Natation -->
+    <article class="sport-card">
+      <img src="{% static 'image/natation.jpg' %}" alt="Natation – nage en bassin" class="sport-img">
+      <div class="sport-body">
+        <h4>Natation</h4>
+        <p>La natation aux Jeux Olympiques est un sport aussi bien individuel que d’équipe dans lequel les concurrents
+            propulsent leur corps dans l’eau d’une piscine, en salle ou en plein air, en utilisant l’une des nages suivantes : nage libre,
+            dos, brasse et papillon.</p>
+        <a class="btn" href="{% url 'bundle_list' %}">Voir les offres</a>
+      </div>
+    </article>
+
+    <!-- Gymnastique -->
+    <article class="sport-card">
+      <img src="{% static 'image/gymnastique.jpg' %}" alt="Gymnastique – agrès et sol" class="sport-img">
+      <div class="sport-body">
+        <h4>Gymnastique</h4>
+        <p>Introduite en 1894, la gymnastique artistique était l’une des disciplines des premiers Jeux Olympiques de
+            l’ère moderne. Les gymnastes artistiques doivent développer leurs compétences sur des agrès, comme la poutre ou le sol.</p>
+        <a class="btn" href="{% url 'bundle_list' %}">Voir les offres</a>
+      </div>
+    </article>
+  </section>
+
+  {# Styles minimalistes pour une mise en page dynamique #}
+  <style>
+    .sport-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1rem;
+      margin-top: .5rem;
+    }
+    .sport-card {
+      background: #fff;
+      border: 1px solid #e6e6e6;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,.05);
+      transition: transform .15s ease, box-shadow .15s ease;
+      display: flex;
+      flex-direction: column;
+    }
+    .sport-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 18px rgba(0,0,0,.08);
+    }
+    .sport-img {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+      display: block;
+    }
+    .sport-body {
+      padding: 1rem;
+      display: grid;
+      gap: .5rem;
+    }
+    .sport-body h4 {
+      margin: 0;
+      font-size: 1.1rem;
+    }
+    .btn {
+      justify-self: start;
+      padding: .5rem .9rem;
+      border-radius: 8px;
+      border: 1px solid #2d6cdf;
+      text-decoration: none;
+      color: white;
+      background: #2d6cdf;
+      font-weight: 600;
+      transition: filter .15s ease, transform .05s ease;
+    }
+    .btn:hover { filter: brightness(1.05); }
+    .btn:active { transform: translateY(1px); }
+  </style>
+{% endblock %}
+
+{% comment %}
 {% extends 'tickets/main.html' %}
 
 {% block title %}Accueil{% endblock %}
@@ -12,4 +118,4 @@
     <li>Natation</li>
     <li>Gymnastique</li>
 </ul>
-{% endblock %}
+{% endblock %}{% endcomment %}
