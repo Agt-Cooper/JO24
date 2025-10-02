@@ -79,6 +79,13 @@ main {
     cursor: pointer;
     transition: background-color 0.3s ease, color 0.3s ease;
 }
+/*Variante plus large pour le bouton principal*/
+.auth-btn.primary {
+    display: block;
+    margin: 1rem auto;
+    font-size: 1rem;
+    padding: 0.75rem 1.5rem;
+}
 
 /* hover state */
 .auth-btn:hover {
@@ -162,3 +169,9 @@ button {
 /* --- feedback du js --- */
 
 .add-to-cart-form .btn.added { filter: brightness(1.08); transform: translateY(1px); }
+
+/* champ de saisie pour quantité*/
+.qty-input {
+    width: 70%;
+    padding: 0.25rem;
+}

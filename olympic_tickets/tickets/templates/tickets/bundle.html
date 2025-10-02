@@ -16,8 +16,8 @@
                 data-offer-id="{{ offer.id }}">
             {% csrf_token %}
 {# Réfléchir si bloquer l'achat des billets à 1 par activité : Protection contre bot, abus, revente..#}
-            <label for="qty-{{ offer.id }}"> Qantité :</label>
-            <input id="qty-{{ offer.id }}" type="number" name="qantity" value="1" min="1" style="width:80px;">
+            <label for="qty-{{ offer.id }}"> Quantité :</label>
+            <input id="qty-{{ offer.id }}" type="number" name="quantity" value="1" min="1" class="qty-input">
 
             <button type="submit" class="btn">Ajouter au panier</button>
         </form>
