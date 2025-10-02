@@ -8,6 +8,9 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.urls import reverse
 from .forms import OfferForm
 
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+
 # Accueil
 def home_view(request):
     return render(request, 'tickets/home.html')
@@ -31,11 +34,28 @@ def cart_view(request):
     return render(request, 'tickets/cart.html', {'cart': items, 'total_price': total})
 
 # Ajouter au panier
+@require_POST
 def add_to_cart_view(request, offer_id):
+    # on force une liste de strings ou ints, peu importe, mais on ré-écrit la session
     cart = request.session.get('cart', [])
-    cart.append(offer_id)
-    request.session['cart'] = cart
-    return redirect('cart')
+    if offer_id not in cart:
+        cart.append(offer_id)
+    request.session['cart'] = cart #ecriture explicite
+    request.session.modified = True #sécrutié: marque la session modifié
+
+    # Si requête AJAX → on renvoie du JSON avec le nouveau compteur
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse({"ok": True, "cart_count": len(cart)})
+
+    # Fallback non-AJAX : revenir à la page précédente si possible
+    next_url = request.META.get("HTTP_REFERER") or '/'
+    return redirect(next_url)
+# def add_to_cart_view(request, offer_id):
+#     cart = request.session.get('cart', [])
+#     cart.append(offer_id)
+#     request.session['cart'] = cart
+#     return redirect('cart')  A supprimer apres test
+
 
 # AUTHENTIFICATION
 

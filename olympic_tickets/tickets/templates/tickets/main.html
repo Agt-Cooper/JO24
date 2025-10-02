@@ -23,25 +23,29 @@
 </head>
 <body>
     <header>
-        <h1>Jeux Olympiques 2024</h1>
-        <nav>
-            <a href="{% url 'home' %}">Accueil</a> |
-            <a href="{% url 'bundle_list' %}">Offres</a> |
-            <a href="{% url 'cart' %}">Panier</a> |
+        <div class="header-inner">
+            <h1>Jeux Olympiques 2024</h1>
+            <nav class="main-nav">
+                <a href="{% url 'home' %}">Accueil</a> |
+                <a href="{% url 'bundle_list' %}">Offres</a> |
+                <a href="{% url 'cart' %}">Panier <span id="cart-count">({{ cart_count }})</span></a> |
 
-            {% if user.is_authenticated and user.is_superuser or user.is_staff %}
-                <a href="{% url 'offers_manage' %}">Gérer les offres</a> |
-            {% endif %}
+                {% if user.is_authenticated and user.is_superuser or user.is_staff %}
+                    <a href="{% url 'offers_manage' %}">Gérer les offres</a> |
+                {% endif %}
+            </nav>
 
-            {% if user.is_authenticated %}
-                <form action="{% url 'logout' %}" method="post" style="display:inline;">
-                    {% csrf_token %}
-                    <button type="submit" class="linklike">Se déconnecter</button>
-                </form>
-            {% else %}
-                <a href="{% url 'login' %}">Se connecter</a> |
-                <a href="{% url 'signup' %}">S'inscrire</a>
-            {% endif %}
+            <div class="auth-actions">
+                {% if user.is_authenticated %}
+                    <form action="{% url 'logout' %}" method="post" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="linklike">Log out</button>
+                    </form>
+                {% else %}
+                    <a href="{% url 'login' %}" class="auth-link">Log in</a> |
+                    {#  <a href="{% url 'signup' %}" class="auth-link">Sign up</a>#}
+                {% endif %}
+            </div>
         {% comment %}_______
             {% if user.is_authenticated and (user.is_superuser or user.is.staff) %}
                 <form action="{% url 'logout' %}" method="post" style="display:inline;">
@@ -52,7 +56,7 @@
                 <a href="{% url 'login' %}">Se connecter</a> |
                 <a href="{% url 'signup' %}">S'inscrire</a>
             {% endif %}{% endcomment %}
-        </nav>
+        </div>
     </header>
 
     <main>
@@ -63,5 +67,6 @@
     <footer>
         <p>&copy; Paris 2024</p>
     </footer>
+<script src="{% static 'js/cart.js' %}"></script>
 </body>
 </html>

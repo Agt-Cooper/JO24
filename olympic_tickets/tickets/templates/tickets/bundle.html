@@ -10,6 +10,17 @@
         <h3>{{ offer.name }}</h3>
         <p>{{ offer.description }}</p>
         <p><strong>{{ offer.price }} €</strong></p>
+        <form class="add-to-cart-form"
+              action="{% url 'add_to_cart' offer.id %}"
+              method="post"
+              data-offer-id="{{ offer.id }}">
+            {% csrf_token %}
+            <button type="submit" class="btn">Ajouter au panier</button>
+        </form>
+    </div>
+{% endfor %}
+
+{% comment %}
         <form method="post" action="{% url 'add_to_cart' offer.id %}">
             {% csrf_token %}
             <button type="submit">Ajouter au panier</button>
@@ -17,5 +28,5 @@
     </div>
 {% empty %}
     <p>Aucune offre disponible pour le moment.</p>
-{% endfor %}
+{% endfor %}{% endcomment %}
 {% endblock %}

@@ -21,6 +21,14 @@ header {
     padding: 1rem 2rem;
 }
 
+.header-inner{
+    display: flex;  /* met h1, nav et auth-actions sur une seule ligne */
+    align-items: center;
+    /*justify-content: space-between;*/
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+}
+
 header h1 {
     margin-bottom: 0.5rem;
 }
@@ -44,6 +52,33 @@ main {
     background-color: white;
     border-radius: 8px;
     box-shadow: 0 0 10px rgba(0,0,0,0.05);
+}
+
+/* Si tu veux nav à gauche et actions complètement à droite : */
+.main-nav {
+    margin-left: 1rem;
+}
+
+.auth-actions {
+    margin-left: auto; /* pousse les actions à l'extrême droite */
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+}
+
+/* Liens d'auth “look like” */
+.auth-link, .linklike {
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    font: inherit;
+    color: #2d6cdf;
+    cursor: pointer;
+    text-decoration: underline;
+}
+.auth-link:hover, .linklike:hover {
+    text-decoration: none;
 }
 
 /* ---------- FOOTER ---------- */
@@ -117,3 +152,7 @@ ul {
 button {
     font-family: inherit;
 }
+
+/* --- feedback du js --- */
+
+.add-to-cart-form .btn.added { filter: brightness(1.08); transform: translateY(1px); }
