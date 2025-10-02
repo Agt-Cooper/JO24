@@ -1,4 +1,62 @@
 {% extends 'tickets/main.html' %}
+{% load static %}
+{% block title %}Votre panier{% endblock %}
+
+{% block content %}
+<h2>Mon panier</h2>
+
+{% if cart %}
+    {# On place un mini formulaire caché juste pour récupérer le CSRF token #}
+    <form id="csrf-form">{% csrf_token %}</form>
+
+    <table>
+        <thead>
+        <tr>
+            <th>Offre</th>
+            <th>Prix</th>
+            <th>Quantité</th>
+            <th>Total</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for item in cart %}
+            <tr id="row-{{ item.offer.id }}">
+                <td>{{ item.offer.name }}</td>
+                <td>{{ item.offer.price }} €</td>
+                <td>
+                    <div>
+                        <button class="qty-btn" data-offer-id="{{ item.offer.id }}" data-action="dec">−</button>
+                        <input type="number" class="qty-input" id="qty-{{ item.offer.id }}" value="{{ item.quantity }}" min="1" style="width:70px;">
+                        <button class="qty-btn" data-offer-id="{{ item.offer.id }}" data-action="inc">+</button>
+                    </div>
+                </td>
+                <td>
+                    <span id="line-{{ item.offer.id }}">{{ item.line_total }} €</span>
+                </td>
+                <td>
+                    <button class="remove-btn" data-offer-id="{{ item.offer.id }}">Supprimer</button>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <p>
+        <strong>Total : <span id="total-price">{{ total_price }}</span> €</strong>
+    </p>
+
+    <button>Procéder au paiement</button>
+
+    <script src="{% static 'js/cart-actions.js' %}"></script>
+
+{% else %}
+    <p>Votre panier est vide.</p>
+{% endif %}
+{% endblock %}
+
+{% comment %}
+{% extends 'tickets/main.html' %}
 
 {% block title %}Votre panier{% endblock %}
 
@@ -8,7 +66,10 @@
 {% if cart %}
     <ul>
         {% for item in cart %}
-            <li>{{ item.offer.name }} - {{ item.quantity }} x {{ item.offer.price }} €</li>
+            <li>
+                {{ item.offer.name }} - {{ item.quantity }} x {{ item.offer.price }} €
+                = <strong>{{ item.line_total }} €</strong>
+            </li>
         {% endfor %}
     </ul>
     <p><strong>Total : {{ total_price }} €</strong></p>
@@ -16,4 +77,4 @@
 {% else %}
     <p>Votre panier est vide.</p>
 {% endif %}
-{% endblock %}
+{% endblock %}{% endcomment %}

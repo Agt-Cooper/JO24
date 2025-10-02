@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', function () {
             'X-Requested-With': 'XMLHttpRequest',
             'X-CSRFToken': csrf,
         },
-        body: new FormData(form),
+        body: new FormData(form), // Important car si new Formdata() vide (dans la parathèse) la quantité n'était pas transmise car pas de formulaire
         });
 
         if (!resp.ok) throw new Error('HTTP ' + resp.status);

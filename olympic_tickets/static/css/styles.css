@@ -66,19 +66,25 @@ main {
     gap: .75rem;
 }
 
-/* Liens d'auth “look like” */
-.auth-link, .linklike {
-    background: none;
-    border: none;
-    padding: 0;
-    margin: 0;
-    font: inherit;
-    color: #2d6cdf;
-    cursor: pointer;
-    text-decoration: underline;
-}
-.auth-link:hover, .linklike:hover {
+.auth-btn {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    border-radius: 25px;
+    border: 1px solid #225ac1;
+    background-color: #225ac1;
+    color: white;
+    font-size: 0.9rem;
+    font-weight: 500;
     text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* hover state */
+.auth-btn:hover {
+    background-color: #174a99;  /* un bleu un peu plus foncé */
+    border-color: #174a99;
+    color: #fff;
 }
 
 /* ---------- FOOTER ---------- */

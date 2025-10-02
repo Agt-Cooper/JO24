@@ -6,6 +6,7 @@
     <meta charset="UTF-8">
     <title>{% block title %}JO 2024{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="stylesheet" href="{% static 'css/cart.css' %}">
     <style>
         .linklike {
             background:none;
@@ -39,10 +40,10 @@
                 {% if user.is_authenticated %}
                     <form action="{% url 'logout' %}" method="post" style="display:inline;">
                         {% csrf_token %}
-                        <button type="submit" class="linklike">Log out</button>
+                        <button type="submit" class="auth-btn">Log out</button>
                     </form>
                 {% else %}
-                    <a href="{% url 'login' %}" class="auth-link">Log in</a> |
+                    <a href="{% url 'login' %}" class="auth-btn">Log in</a>
                     {#  <a href="{% url 'signup' %}" class="auth-link">Sign up</a>#}
                 {% endif %}
             </div>

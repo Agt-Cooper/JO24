@@ -1,0 +1,48 @@
+/* Partie style pour le Panier */
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+td, th {
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+    padding: .5rem;
+}
+
+/* ligne quantité, input et boutons alignés */
+td div {
+    display: flex;
+    align-items: center;
+    gap:.4rem;
+}
+
+/* champ de saisie pour quantité*/
+.qty-input {
+    width: 70%;
+    padding: .25rem;
+}
+/* boutons +, - et supprimer */
+.qty-btn, .remove-btn {
+    padding: .2rem .5rem;
+    border: 1px solid #ccc;
+    background: #f7f7f7;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.qty-btn:hover, .remove-btn:hover {
+    filter: brightness(1.05);
+}
+
+/* Total */
+#total-price {
+    font-weight: bold;
+}
+
+p strong {
+    font-size: 1.1rem;
+    margin-top: 1rem;
+    display: inline-block;
+}

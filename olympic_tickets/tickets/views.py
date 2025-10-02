@@ -26,35 +26,58 @@ def cart_view(request):
     items = []
     total = 0
 
-    for offer_id in cart:
-        offer = get_object_or_404(Offer, id=offer_id)
-        items.append({'offer': offer})
-        total += offer.price
+    #Supporte dict {id/ qty} et ancien format liste
+    if isinstance(cart, dict):
+        for offer_id, qty in cart.items():
+            offer = get_object_or_404(Offer, id=int(offer_id))
+            line_total = offer.price * qty
+            items.append({'offer': offer, 'quantity': qty, 'line_total': line_total})
+            total += offer.price
+
+    else:
+        # ancien format: chaque id compte pour 1
+        for offer_id in cart:
+            offer = get_object_or_404(Offer, id=offer_id)
+            line_total = offer.price
+            items.append({offer: offer, 'quantity': 1, 'line_total': line_total})
+            total += line_total
 
     return render(request, 'tickets/cart.html', {'cart': items, 'total_price': total})
 
 # Ajouter au panier
 @require_POST
 def add_to_cart_view(request, offer_id):
-    # on force une liste de strings ou ints, peu importe, mais on ré-écrit la session
+    # Récupère la quantité depuis le POST (>=1)
+    try:
+        qty = int(request.POST.get("quantity", "1"))
+    except ValueError:
+        qty = 1
+    qty = max(1, qty)
+
     cart = request.session.get('cart', [])
-    if offer_id not in cart:
-        cart.append(offer_id)
-    request.session['cart'] = cart #ecriture explicite
-    request.session.modified = True #sécrutié: marque la session modifié
 
-    # Si requête AJAX → on renvoie du JSON avec le nouveau compteur
+    # Si ton ancien panier est une LISTE d'IDs → on la convertit en DICT {id: qty}
+    if isinstance(cart, list):
+        new_cart = {}
+        for oid in cart:
+            k= str(oid)
+            new_cart[k] = new_cart.get(k, 0) + 1
+        cart = new_cart
+
+    # Maintenant `cart` est un dict { "offer_id": qty }
+    key = str(offer_id)
+    cart[key] = cart.get(key, 0) + qty  # doit ajouter la quantité choisie
+
+    request.session['cart'] = cart
+    request.session.modified = True
+
+    # Requête AJAX → renvoie le compteur total (somme des quantités)
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-        return JsonResponse({"ok": True, "cart_count": len(cart)})
+        total_items = sum(cart.values()) # PLUS UTILE ?? if isinstance(cart, dict) else len(cart)
+        return JsonResponse({"ok": True, "cart_count": total_items, "added_qty": qty})
 
-    # Fallback non-AJAX : revenir à la page précédente si possible
-    next_url = request.META.get("HTTP_REFERER") or '/'
-    return redirect(next_url)
-# def add_to_cart_view(request, offer_id):
-#     cart = request.session.get('cart', [])
-#     cart.append(offer_id)
-#     request.session['cart'] = cart
-#     return redirect('cart')  A supprimer apres test
+    # Fallback non-AJAX : revenir à la page précédente
+    return redirect(request.META.get("HTTP_REFERER") or '/')
 
 
 # AUTHENTIFICATION
@@ -127,4 +150,96 @@ def manage_offers_view(request):
         "form": form,
         "is_editing": bool(offer_to_edit),
         "offer_being_edited": offer_to_edit,
+    })
+
+# Les deux vues suivantes concernent l'ajout suppression des quantités dans le panier
+
+def _get_cart_dict(request):
+    """Garantit que le panier est un dict {str(offer_id): qty}."""
+    cart = request.session.get('cart', {})
+    if isinstance(cart, list):
+        # rétro-compatibilité
+        d = {}
+        for oid in cart:
+            d[str(oid)] = d.get(str(oid), 0) + 1
+        cart = d
+    return cart
+
+def _cart_totals(cart):
+    """Calcule le total du panier et le nombre total d’articles."""
+    total_items = sum(cart.values()) if isinstance(cart, dict) else len(cart)
+    total_price = 0
+    if isinstance(cart, dict):
+        for oid, qty in cart.items():
+            offer = get_object_or_404(Offer, id=int(oid))
+            total_price += offer.price * qty
+    else:
+        for oid in cart:
+            offer = get_object_or_404(Offer, id=oid)
+            total_price += offer.price
+        total_items = len(cart)
+    return total_price, total_items
+
+@require_POST
+def update_cart_item_view(request, offer_id):
+    """ Met à jour la quantité d’une ligne :
+    - action=inc  -> +1
+    - action=dec  -> -1 (si qty arrive à 0 => supprime la ligne)
+    - action=set  + quantity=<n> -> fixe la quantité à n (>=1)
+    Retourne JSON : {ok, quantity, line_total, total_price, cart_count, removed} """
+    action = request.POST.get("action")
+    cart = _get_cart_dict(request)
+    key = str(offer_id)
+    qty = cart.get(key, 0)
+
+    if action == "inc":
+        qty += 1
+    elif action == "dec":
+        qty -= 1
+    elif action == "set":
+        try:
+            qty = max(1, int(request.POST.get("quantity", "1")))
+        except ValueError:
+            qty = max(1, qty or 1)
+
+    removed = False
+    if qty <= 0:
+        cart.pop(key, None)
+        removed = True
+    else:
+        cart[key] = qty
+
+    request.session['cart'] = cart
+    request.session.modified = True
+
+    # Calculs
+    total_price, cart_count = _cart_totals(cart)
+    line_total = 0
+    if not removed:
+        offer = get_object_or_404(Offer, id=offer_id)
+        line_total = float(offer.price) * qty
+
+    return JsonResponse({
+        "ok": True,
+        "quantity": qty if not removed else 0,
+        "line_total": float(line_total),
+        "total_price": float(total_price),
+        "cart_count": cart_count,
+        "removed": removed,
+    })
+
+@require_POST
+def remove_from_cart_view(request, offer_id):
+    """Supprime complètement la ligne d’article."""
+    cart = _get_cart_dict(request)
+    cart.pop(str(offer_id), None)
+    request.session['cart'] = cart
+    request.session.modified = True
+
+    total_price, cart_count = _cart_totals(cart)
+    return JsonResponse({
+        "ok": True,
+        "total_price": float(total_price), #float(...) dans le json pour éviter un éventuel souci de sérialisation de Decimal
+        "cart_count": cart_count,
+        "removed": True,
     })
