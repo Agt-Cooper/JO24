@@ -6,7 +6,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.urls import reverse
-from .forms import OfferForm
+from .forms import SignupLoginForm #OfferForm
 
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
@@ -32,7 +32,7 @@ def cart_view(request):
             offer = get_object_or_404(Offer, id=int(offer_id))
             line_total = offer.price * qty
             items.append({'offer': offer, 'quantity': qty, 'line_total': line_total})
-            total += offer.price
+            total += line_total
 
     else:
         # ancien format: chaque id compte pour 1
@@ -243,3 +243,18 @@ def remove_from_cart_view(request, offer_id):
         "cart_count": cart_count,
         "removed": True,
     })
+
+def signup_login_view(request):
+    """ Page 'Login' transformée en inscription :
+        - Prénom, Nom, Email, Mot de passe (+ confirmation)
+        - Crée l’utilisateur, puis le connecte et redirige vers l’accueil
+    """
+    if request.method == "POST":
+        form = SignupLoginForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            return redirect("home")
+    else:
+        form = SignupLoginForm()
+    return render(request, "tickets/login.html", {"form": form})

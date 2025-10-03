@@ -1,0 +1,19 @@
+/* Partie login */
+
+.auth-form {
+    display: grid;
+    gap: 0.75rem;
+    max-width: 480px;
+    margin: 0 auto;
+}
+
+.auth-form label {
+    font-weight: 500;
+}
+
+.auth-form input {
+    padding: 0.4rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    width: 100%;
+}
