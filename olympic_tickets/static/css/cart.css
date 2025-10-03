@@ -41,3 +41,9 @@ p strong {
     margin-top: 1rem;
     display: inline-block;
 }
+
+.cart-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+}

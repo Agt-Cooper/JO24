@@ -79,6 +79,13 @@ main {
     cursor: pointer;
     transition: background-color 0.3s ease, color 0.3s ease;
 }
+/* hover state */
+.auth-btn:hover {
+    background-color: #174a99;  /* un bleu un peu plus foncé */
+    border-color: #174a99;
+    color: #fff;
+}
+
 /*Variante plus large pour le bouton principal*/
 .auth-btn.primary {
     display: block;
@@ -87,12 +94,19 @@ main {
     padding: 0.75rem 1.5rem;
 }
 
-/* hover state */
-.auth-btn:hover {
-    background-color: #174a99;  /* un bleu un peu plus foncé */
-    border-color: #174a99;
-    color: #fff;
+/* Variante outline pour bouton secondaire */
+.auth-btn.outline {
+    background-color: white;
+    color: #2d6cdf;
+    border: 1px solid #2d6cdf;
 }
+
+.auth-btn.outline:hover {
+    background-color: #2d6cdf;
+    color: white;
+}
+
+
 
 /* ---------- FOOTER ---------- */
 footer {

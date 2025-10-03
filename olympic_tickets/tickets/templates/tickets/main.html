@@ -2,72 +2,72 @@
 {% load static%}
 <!DOCTYPE html>
 <html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <title>{% block title %}JO 2024{% endblock %}</title>
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
-    <link rel="stylesheet" href="{% static 'css/cart.css' %}">
-    <style>
-        .linklike {
-            background:none;
-            border:none;
-            padding:0;
-            margin:0;
-            font: inherit;
-            color: #271832;
-            cursor: pointer;
-            text-decoration: underline;
-        }
-        .linklike:hover { text-decoration: none; }
-    </style>
+    <head>
+        <meta charset="UTF-8">
+        <title>{% block title %}JO 2024{% endblock %}</title>
+        <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+        <link rel="stylesheet" href="{% static 'css/cart.css' %}">
+        <style>
+            .linklike {
+                background:none;
+                border:none;
+                padding:0;
+                margin:0;
+                font: inherit;
+                color: #271832;
+                cursor: pointer;
+                text-decoration: underline;
+            }
+            .linklike:hover { text-decoration: none; }
+        </style>
 
-</head>
-<body>
-    <header>
-        <div class="header-inner">
-            <h1>Jeux Olympiques 2024</h1>
-            <nav class="main-nav">
-                <a href="{% url 'home' %}">Accueil</a> |
-                <a href="{% url 'bundle_list' %}">Offres</a> |
-                <a href="{% url 'cart' %}">Panier <span id="cart-count">({{ cart_count }})</span></a> |
+    </head>
+    <body>
+        <header>
+            <div class="header-inner">
+                <h1>Jeux Olympiques 2024</h1>
+                <nav class="main-nav">
+                    <a href="{% url 'home' %}">Accueil</a> |
+                    <a href="{% url 'bundle_list' %}">Offres</a> |
+                    <a href="{% url 'cart' %}">Panier <span id="cart-count">({{ cart_count }})</span></a> |
 
-                {% if user.is_authenticated and user.is_superuser or user.is_staff %}
-                    <a href="{% url 'offers_manage' %}">Gérer les offres</a> |
-                {% endif %}
-            </nav>
+                    {% if user.is_authenticated and user.is_superuser or user.is_staff %}
+                        <a href="{% url 'offers_manage' %}">Gérer les offres</a> |
+                    {% endif %}
+                </nav>
 
-            <div class="auth-actions">
-                {% if user.is_authenticated %}
+                <div class="auth-actions">
+                    {% if user.is_authenticated %}
+                        <form action="{% url 'logout' %}" method="post" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="auth-btn">Log out</button>
+                        </form>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="auth-btn">Log in</a>
+                        {#  <a href="{% url 'signup' %}" class="auth-link">Sign up</a>#}
+                    {% endif %}
+                </div>
+            {% comment %}_______
+                {% if user.is_authenticated and (user.is_superuser or user.is.staff) %}
                     <form action="{% url 'logout' %}" method="post" style="display:inline;">
                         {% csrf_token %}
-                        <button type="submit" class="auth-btn">Log out</button>
+                        <button type="submit" class="linklike">Se déconnecter</button>
                     </form>
                 {% else %}
-                    <a href="{% url 'login' %}" class="auth-btn">Log in</a>
-                    {#  <a href="{% url 'signup' %}" class="auth-link">Sign up</a>#}
-                {% endif %}
+                    <a href="{% url 'login' %}">Se connecter</a> |
+                    <a href="{% url 'signup' %}">S'inscrire</a>
+                {% endif %}{% endcomment %}
             </div>
-        {% comment %}_______
-            {% if user.is_authenticated and (user.is_superuser or user.is.staff) %}
-                <form action="{% url 'logout' %}" method="post" style="display:inline;">
-                    {% csrf_token %}
-                    <button type="submit" class="linklike">Se déconnecter</button>
-                </form>
-            {% else %}
-                <a href="{% url 'login' %}">Se connecter</a> |
-                <a href="{% url 'signup' %}">S'inscrire</a>
-            {% endif %}{% endcomment %}
-        </div>
-    </header>
+        </header>
 
-    <main>
-        {% block content %}
-        {% endblock %}
-    </main>
+        <main>
+            {% block content %}
+            {% endblock %}
+        </main>
 
-    <footer>
-        <p>&copy; Paris 2024</p>
-    </footer>
-<script src="{% static 'js/cart.js' %}"></script>
-</body>
+        <footer>
+            <p>&copy; Paris 2024</p>
+        </footer>
+    <script src="{% static 'js/cart.js' %}"></script>
+    </body>
 </html>

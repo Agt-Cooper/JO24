@@ -46,7 +46,10 @@
         <strong>Total : <span id="total-price">{{ total_price }}</span> €</strong>
     </p>
 
-    <button class="auth-btn">Procéder au paiement</button>
+    <div class="cart-actions">
+        <button class="auth-btn">Procéder au paiement</button>
+        <a href="{% url 'bundle_list' %}" class="auth-btn outline">Annuler</a>
+    </div>
 
     <script src="{% static 'js/cart-actions.js' %}"></script>
 
