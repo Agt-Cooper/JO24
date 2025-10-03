@@ -42,8 +42,20 @@ p strong {
     display: inline-block;
 }
 
+/* Partie pour le bouton paiement et annuler*/
 .cart-actions {
     display: flex;
     gap: 1rem;
     margin-top: 1rem;
+}
+/* Partie responsive : sur GSM*/
+@media (max-width: 600px) {
+    .cart-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .cart-actions {
+        width: 100%;
+        text-align: center;
+    }
 }
