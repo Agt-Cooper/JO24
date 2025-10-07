@@ -1,86 +1,105 @@
-{# templates/tickets/login.html #}
 {% extends "tickets/main.html" %}
+{% load static %}
 
 {% block title %}Créer un compte{% endblock %}
 
 {% block content %}
     <h2>Créer un compte</h2>
 
-    {% if form.errors %}
-        <p style="color: red;">Veuillez corriger les erreurs ci-dessous.</p>
+    {# Messages flash éventuels #}
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+                <li class="message {{ message.tags }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
     {% endif %}
 
-    <form method="post" class="auth-form">
+    {# Formulaire d'inscription #}
+    <form method="post" action="{% url 'signup' %}" class="auth-form" novalidate>
         {% csrf_token %}
-        <div>
-            <label for="{{ form.first_name.id_for_label }}">Prénom</label>
-            {{ form.first_name }}
-            {{ form.first_name.errors }}
-        </div>
 
-        <div>
-            <label for="{{ form.last_name.id_for_label }}">Nom</label>
-            {{ form.last_name }}
-            {{ form.last_name.errors }}
-        </div>
+        {# Affiche les erreurs globales du formulaire #}
+        {% if form.non_field_errors %}
+            <div class="form-errors" role="alert">
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
 
-        <div>
-            <label for="{{ form.email.id_for_label }}">Email</label>
-            {{ form.email }}
-            {{ form.email.errors }}
-        </div>
+        {{ form.as_p }}
 
-        <div>
-            <label for="{{ form.password1.id_for_label }}">Mot de passe</label>
-            {{ form.password1 }}
-            {{ form.password1.errors }}
-        </div>
-
-        <div>
-            <label for="{{ form.password2.id_for_label }}">Confirmation du mot de passe</label>
-            {{ form.password2 }}
-            {{ form.password2.errors }}
-        </div>
+        {# Propage le paramètre 'next' pour la redirection après inscription #}
+        {% if request.GET.next or request.POST.next %}
+            <input type="hidden" name="next" value="{{ request.GET.next|default:request.POST.next }}">
+        {% endif %}
 
         <button type="submit" class="auth-btn">Créer mon compte</button>
     </form>
 
-    <p><a href="{% url 'home' %}">← Retour à l'accueil</a></p>
-{% endblock %}
+    <p style="margin-top: 1rem;">
+        <button type="button"
+                class="auth-btn outline"
+                id="open-signin"
+                aria-haspopup="dialog"
+                aria-controls="signin-modal">
+            Déjà inscrit ?
+        </button>
+    </p>
 
+    {# ------- Modale Signin ------- #}
+    <div class="modal" id="signin-modal" aria-hidden="true">
+        <div class="modal-backdrop" data-close></div>
 
-{% comment %}
-<!-- templates/tickets/login.html -->
-{% load static %}
+        <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="signin-title">
 
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <title>Connexion</title>
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
-</head>
-<body>
-    <h2>Connexion</h2>
+            <div class="modal-header">
+                <h3 id="signin-title">Se connecter</h3>
+                <button type="button"
+                        class="modal-close"
+                        title="Fermer"
+                        aria-label="Fermer"
+                        data-close>
+                    &times;
+                </button>
+            </div>
 
-    {% if form.errors %}
-        <p style="color: red;">Nom d'utilisateur ou mot de passe incorrect.</p>
+            <form method="post" action="{% url 'signin' %}" class="modal-form" novalidate>
+                {% csrf_token %}
+
+                {# Conserve la redirection 'next' si fournie #}
+                {% if request.GET.next or request.POST.next %}
+                    <input type="hidden" name="next" value="{{ request.GET.next|default:request.POST.next }}">
+                {% endif %}
+
+                {# Erreurs globales de connexion #}
+                {% if signin_error %}
+                    <div class="modal-error" role="alert">{{ signin_error }}</div>
+                {% endif %}
+                {% if signin_form and signin_form.non_field_errors %}
+                    <div class="modal-error" role="alert">
+                        {{ signin_form.non_field_errors }}
+                    </div>
+                {% endif %}
+
+                <label for="signin-email">Email</label>
+                <input id="signin-email" type="email" name="email" inputmode="email" autocomplete="email" required>
+
+                <label for="signin-password">Mot de passe</label>
+                <input id="signin-password" type="password" name="password" autocomplete="current-password" required>
+
+                <div class="modal-actions">
+                    <button type="submit" class="auth-btn">Se connecter</button>
+                    <button type="button" class="auth-btn outline" data-close>Annuler</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {# JS spécifique à la page login #}
+    <script src="{% static 'js/login.js' %}"></script>
+
+    {# Ouvre la modale au chargement si demandé côté vue #}
+    {% if open_signin %}
+        <script>window.__OPEN_SIGNIN__ = true;</script>
     {% endif %}
-
-    <form method="post">
-        {% csrf_token %}
-        <div>
-            <label for="id_username">Nom d'utilisateur :</label>
-            {{ form.username }}
-        </div>
-        <div>
-            <label for="id_password">Mot de passe :</label>
-            {{ form.password }}
-        </div>
-        <button type="submit">Se connecter</button>
-    </form>
-
-    <p><a href="{% url 'home' %}">← Retour à l'accueil</a></p>
-</body>
-</html>
-{% endcomment %}
+{% endblock %}

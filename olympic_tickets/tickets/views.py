@@ -3,7 +3,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from .models import Offer
 
 from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth import login
+from django.contrib.auth import login, authenticate, get_user_model
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.urls import reverse
 from .forms import SignupLoginForm #OfferForm
@@ -258,3 +258,32 @@ def signup_login_view(request):
     else:
         form = SignupLoginForm()
     return render(request, "tickets/login.html", {"form": form})
+
+# Partie ajoutée pour le popup
+
+def signin_view(request):
+    """Connexion via e-mail + mot de passe (utilisée par la modale)."""
+    if request.method == "POST":
+        email = (request.POST.get("email") or "").strip()
+        password = request.POST.get("password") or ""
+        next_url = request.POST.get("next") or request.GET.get("next") or reverse("home")
+
+        User = get_user_model()
+        user_obj = User.objects.filter(email__iexact=email).first()
+        if user_obj:
+            user = authenticate(request, username=user_obj.username, password=password)
+            if user:
+                login(request, user)
+                return redirect(next_url)
+
+        # Échec : on réaffiche la page login avec la modale ouverte + message
+        from .forms import SignupLoginForm
+        form = SignupLoginForm()
+        context = {
+            "form": form,
+            "open_signin": True,
+            "signin_error": "Email ou mot de passe invalide.",
+        }
+        return render(request, "tickets/login.html", context)
+
+    return redirect("login")
