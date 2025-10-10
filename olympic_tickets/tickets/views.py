@@ -1,4 +1,6 @@
 # Create your views here.
+from decimal import Decimal
+
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Offer
 
@@ -6,9 +8,8 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login, authenticate, get_user_model
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.urls import reverse
-from .forms import SignupLoginForm #OfferForm
-
-from django.http import JsonResponse
+from .forms import SignupLoginForm #OfferForm en import local dans manage_offers_view, de cette façon l'import ne s'exécute qu'au moment où la fonction est appelée
+from django.http import JsonResponse, HttpResponseBadRequest  #ajout du httpResponseBadRequest
 from django.views.decorators.http import require_POST
 
 # Accueil
@@ -24,22 +25,22 @@ def bundle_list_view(request):
 def cart_view(request):
     cart = request.session.get('cart', [])
     items = []
-    total = 0
+    total = Decimal(0)  #ajout ancien total = 0
 
-    #Supporte dict {id/ qty} et ancien format liste
+    #Supporte dict {id: qty} et ancien format liste
     if isinstance(cart, dict):
         for offer_id, qty in cart.items():
             offer = get_object_or_404(Offer, id=int(offer_id))
-            line_total = offer.price * qty
-            items.append({'offer': offer, 'quantity': qty, 'line_total': line_total})
+            line_total = offer.price * int(qty) # ajout ancien *qty
+            items.append({'offer': offer, 'quantity': int(qty), 'line_total': line_total})  #ajout ancien 'quantity': qty
             total += line_total
 
     else:
         # ancien format: chaque id compte pour 1
         for offer_id in cart:
-            offer = get_object_or_404(Offer, id=offer_id)
+            offer = get_object_or_404(Offer, id=int(offer_id))  #ajout ancien id=offer_id
             line_total = offer.price
-            items.append({offer: offer, 'quantity': 1, 'line_total': line_total})
+            items.append({'offer': offer, 'quantity': 1, 'line_total': line_total}) #ajout correction 'offer' était écrit offer
             total += line_total
 
     return render(request, 'tickets/cart.html', {'cart': items, 'total_price': total})
@@ -47,10 +48,12 @@ def cart_view(request):
 # Ajouter au panier
 @require_POST
 def add_to_cart_view(request, offer_id):
+    #Valide l'offre (404 si inexistante)
+    get_object_or_404(Offer, id=int(offer_id)) #ajout oublie mais ça ou id=offer_id
     # Récupère la quantité depuis le POST (>=1)
     try:
         qty = int(request.POST.get("quantity", "1"))
-    except ValueError:
+    except (TypeError, ValueError): #ajout ajout de TypeError
         qty = 1
     qty = max(1, qty)
 
@@ -60,21 +63,30 @@ def add_to_cart_view(request, offer_id):
     if isinstance(cart, list):
         new_cart = {}
         for oid in cart:
-            k= str(oid)
+            k= str(int(oid)) #ajout ancien k= str(oid)
             new_cart[k] = new_cart.get(k, 0) + 1
         cart = new_cart
 
     # Maintenant `cart` est un dict { "offer_id": qty }
-    key = str(offer_id)
+    key = str(int(offer_id)) #ajout ancien str(offer_id)
     cart[key] = cart.get(key, 0) + qty  # doit ajouter la quantité choisie
 
     request.session['cart'] = cart
     request.session.modified = True
 
     # Requête AJAX → renvoie le compteur total (somme des quantités)
-    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-        total_items = sum(cart.values()) # PLUS UTILE ?? if isinstance(cart, dict) else len(cart)
+    is_ajax = (
+            request.headers.get('x-requested-with') == 'XMLHttpRequest'
+            or request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest'
+    )
+    if is_ajax:
+        total_items = sum(int(v) for v in cart.values())
         return JsonResponse({"ok": True, "cart_count": total_items, "added_qty": qty})
+
+    # # Requête AJAX → renvoie le compteur total (somme des quantités)
+    # if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+    #     total_items = sum(cart.values()) # PLUS UTILE ?? if isinstance(cart, dict) else len(cart)
+    #     return JsonResponse({"ok": True, "cart_count": total_items, "added_qty": qty})
 
     # Fallback non-AJAX : revenir à la page précédente
     return redirect(request.META.get("HTTP_REFERER") or '/')
@@ -113,7 +125,7 @@ def manage_offers_view(request):
     edit_id = request.GET.get("edit")
     offer_to_edit = None
     if edit_id:
-        offer_to_edit = get_object_or_404(Offer, pk=edit_id)
+        offer_to_edit = get_object_or_404(Offer, pk=int(edit_id)) #ajout ancien pk=edit_id)
 
     if request.method == "POST":
         action = request.POST.get("action")
@@ -126,7 +138,7 @@ def manage_offers_view(request):
 
         elif action == "update":
             offer_id = request.POST.get("offer_id")
-            offer = get_object_or_404(Offer, pk=offer_id)
+            offer = get_object_or_404(Offer, pk=int(offer_id)) #ajout ancien pk=offer_id)
             form = OfferForm(request.POST, instance=offer)
             if form.is_valid():
                 form.save()
@@ -134,7 +146,7 @@ def manage_offers_view(request):
 
         elif action == "delete":
             offer_id = request.POST.get("offer_id")
-            offer = get_object_or_404(Offer, pk=offer_id)
+            offer = get_object_or_404(Offer, pk=int(offer_id)) #ajout ancien pk=offer_id)
             offer.delete()
             return redirect(reverse("offers_manage"))
 
@@ -161,21 +173,23 @@ def _get_cart_dict(request):
         # rétro-compatibilité
         d = {}
         for oid in cart:
-            d[str(oid)] = d.get(str(oid), 0) + 1
+            k = str(int(oid))
+            d[k] = d.get(k, 0) + 1
+            #ajout ancien d[str(oid)] = d.get(str(oid), 0) + 1 ET pas les deux lignes du dessus
         cart = d
     return cart
 
 def _cart_totals(cart):
     """Calcule le total du panier et le nombre total d’articles."""
-    total_items = sum(cart.values()) if isinstance(cart, dict) else len(cart)
-    total_price = 0
+    total_items = sum(int(v) for v in cart.values()) if isinstance(cart, dict) else len(cart) #ajout ancien sum(cart.values()) if isinstance(cart, dict) else len(cart)
+    total_price = Decimal(0) #ajout ancien 0
     if isinstance(cart, dict):
         for oid, qty in cart.items():
             offer = get_object_or_404(Offer, id=int(oid))
-            total_price += offer.price * qty
+            total_price += offer.price * int(qty) #ajout ancien * qty
     else:
         for oid in cart:
-            offer = get_object_or_404(Offer, id=oid)
+            offer = get_object_or_404(Offer, id=int(oid)) #ajout ancien id=oid)
             total_price += offer.price
         total_items = len(cart)
     return total_price, total_items
@@ -188,18 +202,20 @@ def update_cart_item_view(request, offer_id):
     - action=set  + quantity=<n> -> fixe la quantité à n (>=1)
     Retourne JSON : {ok, quantity, line_total, total_price, cart_count, removed} """
     action = request.POST.get("action")
+    if action not in {'inc', 'dec', 'set'}:
+        return HttpResponseBadRequest("Action invalide")
     cart = _get_cart_dict(request)
-    key = str(offer_id)
-    qty = cart.get(key, 0)
+    key =  str(int(offer_id)) #ajout ancien str(offer_id)
+    qty = int(cart.get(key, 0)) #ajout ancien cart.get(key, 0)
 
-    if action == "inc":
+    if action == 'inc':
         qty += 1
-    elif action == "dec":
+    elif action == 'dec':
         qty -= 1
-    elif action == "set":
+    elif action == 'set':
         try:
             qty = max(1, int(request.POST.get("quantity", "1")))
-        except ValueError:
+        except (TypeError, ValueError): #ajout ancien ValueError:
             qty = max(1, qty or 1)
 
     removed = False
@@ -214,16 +230,16 @@ def update_cart_item_view(request, offer_id):
 
     # Calculs
     total_price, cart_count = _cart_totals(cart)
-    line_total = 0
+    line_total = Decimal(0) #ajout ancien 0
     if not removed:
-        offer = get_object_or_404(Offer, id=offer_id)
-        line_total = float(offer.price) * qty
+        offer = get_object_or_404(Offer, id=int(offer_id)) #ajout ancien id=offer_id)
+        line_total = offer.price * qty #ajout ancien float(offer.price) * qty
 
     return JsonResponse({
         "ok": True,
         "quantity": qty if not removed else 0,
-        "line_total": float(line_total),
-        "total_price": float(total_price),
+        "line_total": float(line_total), # cast safe pour JSON
+        "total_price": float(total_price), # idem
         "cart_count": cart_count,
         "removed": removed,
     })
@@ -232,7 +248,7 @@ def update_cart_item_view(request, offer_id):
 def remove_from_cart_view(request, offer_id):
     """Supprime complètement la ligne d’article."""
     cart = _get_cart_dict(request)
-    cart.pop(str(offer_id), None)
+    cart.pop(str(int(offer_id)), None) #ajout ancien cart.pop(str(offer_id), None)
     request.session['cart'] = cart
     request.session.modified = True
 
@@ -271,13 +287,14 @@ def signin_view(request):
         User = get_user_model()
         user_obj = User.objects.filter(email__iexact=email).first()
         if user_obj:
+            # NB: username = user_obj.username (si AUTH_USER_MODEL personnalisé, adapter)
             user = authenticate(request, username=user_obj.username, password=password)
             if user:
                 login(request, user)
                 return redirect(next_url)
 
         # Échec : on réaffiche la page login avec la modale ouverte + message
-        from .forms import SignupLoginForm
+        #ajout ancien from .forms import SignupLoginForm
         form = SignupLoginForm()
         context = {
             "form": form,
