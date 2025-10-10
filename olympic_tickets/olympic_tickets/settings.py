@@ -108,8 +108,25 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
+# Cookies et sécurité (changer en True en prod sous HTTPS)
+SESSION_COOKIE_SECURE = False # True en prod (HTTPS)
+CSRF_COOKIE_SECURE = False # Idem
+SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_HTTPONLY = False # garder false sinon les formules ne marcheront pas
+SECURE_HSTS_SECONDS = 0 # >0 en prod
+SECURE_SSL_REDIRECT = False # True en prod (HTTPS)
+
+# Email (dev : console)
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+DEFAULT_FROM_EMAIL = 'no-reply@jo24.local'
+
+# Cache (pour rate-limit simple
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'jo24-cache',
+    }
+}
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
