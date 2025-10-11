@@ -60,7 +60,20 @@
                 {% endif %}{% endcomment %}
             </div>
         </header>
+        {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                    <div class="message {{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
 
+        {% if user.is_authenticated and user.profile and not user.profile.email_verified %}
+            <div class="verify-banner">
+                <span>Votre adresse e-mail n’est pas vérifiée.</span>
+                <a href="{% url 'resend_verify_email' %}" class="auth-btn outline">Renvoyer le mail</a>
+            </div>
+        {% endif %}
         <main>
             {% block content %}
             {% endblock %}

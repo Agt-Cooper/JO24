@@ -22,4 +22,8 @@ urlpatterns = [
 
     # (Optionnel) je garde /signup/ si je veux sa propre page
     path('signup/', views.signup_view, name='signup'), # optionnel si sur même page
+
+    #Verification de l'email
+    path('verify-email/', views.verify_email_view, name='verify_email'),
+    path('verify-email/resend/', views.resend_verify_email_view, name='resend_verify_email'),
 ]

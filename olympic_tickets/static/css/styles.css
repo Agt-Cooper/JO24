@@ -189,3 +189,51 @@ button {
     width: 70%;
     padding: 0.25rem;
 }
+
+/*-- Pour le message et bandeau du mail de vérification --*/
+/* Messages */
+.messages {
+    margin: .5rem auto;
+    max-width: 960px;
+    padding: 0 .75rem;
+}
+.message {
+    padding: .5rem .75rem;
+    border-radius: 8px;
+    margin-bottom: .5rem;
+}
+.message.success {
+    background: #e6f6ea;
+    color: #246b36;
+    border: 1px solid #bde5c8;
+}
+.message.info    {
+    background: #eaf4fe;
+    color: #235a97;
+    border: 1px solid #c8def7;
+}
+.message.warning {
+    background: #fff7e6;
+    color: #7a5a00;
+    border: 1px solid #ffe3a6;
+}
+.message.error   {
+    background: #fdecea;
+    color: #b33a3a;
+    border: 1px solid #f5c2c0;
+}
+
+/* Bandeau email non vérifié */
+.verify-banner {
+    max-width: 960px;
+    margin: .75rem auto;
+    padding: .75rem;
+    border: 1px dashed #f0b429;
+    background: #fff7e6;
+    color: #7a5a00;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    justify-content: space-between;
+}
