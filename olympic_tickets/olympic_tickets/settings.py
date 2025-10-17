@@ -120,7 +120,7 @@ SECURE_SSL_REDIRECT = False # True en prod (HTTPS)
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend' #permet un retour des mails dans la console
 DEFAULT_FROM_EMAIL = 'no-reply@jo24.local' #défini en relation avec la vue _send_verify_email EVITE l'envoie des mails dans SPAM
 
-# Cache (pour rate-limit simple
+# Cache (pour rate-limit simple) --> idée futur pour un durcissement de la sécurité
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',

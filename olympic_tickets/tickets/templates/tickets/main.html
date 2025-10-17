@@ -45,19 +45,8 @@
                         </form>
                     {% else %}
                         <a href="{% url 'login' %}" class="auth-btn">Log in</a>
-                        {#  <a href="{% url 'signup' %}" class="auth-link">Sign up</a>#}
                     {% endif %}
                 </div>
-            {% comment %}_______
-                {% if user.is_authenticated and (user.is_superuser or user.is.staff) %}
-                    <form action="{% url 'logout' %}" method="post" style="display:inline;">
-                        {% csrf_token %}
-                        <button type="submit" class="linklike">Se déconnecter</button>
-                    </form>
-                {% else %}
-                    <a href="{% url 'login' %}">Se connecter</a> |
-                    <a href="{% url 'signup' %}">S'inscrire</a>
-                {% endif %}{% endcomment %}
             </div>
         </header>
         {% if messages %}
@@ -69,12 +58,6 @@
             </div>
         {% endif %}
 
-        {% if user.is_authenticated and user.profile and not user.profile.email_verified %}
-            <div class="verify-banner">
-                <span>Votre adresse e-mail n’est pas vérifiée.</span>
-                <a href="{% url 'resend_verify_email' %}" class="auth-btn outline">Renvoyer le mail</a>
-            </div>
-        {% endif %}
         <main>
             {% block content %}
             {% endblock %}

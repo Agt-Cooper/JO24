@@ -1,7 +1,5 @@
 # Create your views here.
 
-from django.core.mail import send_mail
-from .tokens import make_email_token, read_email_token
 from django.core.cache import cache #pour le rate-limite signin
 from django.contrib import messages
 from django.utils import timezone
@@ -66,7 +64,7 @@ def add_to_cart_view(request, offer_id):
 
     cart = request.session.get('cart', [])
 
-    # Si ton ancien panier est une LISTE d'IDs → on la convertit en DICT {id: qty}
+    # Si l'ancien panier est une LISTE d'IDs → on la convertit en DICT {id: qty}
     if isinstance(cart, list):
         new_cart = {}
         for oid in cart:
@@ -90,28 +88,7 @@ def add_to_cart_view(request, offer_id):
         total_items = sum(int(v) for v in cart.values())
         return JsonResponse({"ok": True, "cart_count": total_items, "added_qty": qty})
 
-    # # Requête AJAX → renvoie le compteur total (somme des quantités)
-    # if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-    #     total_items = sum(cart.values()) # PLUS UTILE ?? if isinstance(cart, dict) else len(cart)
-    #     return JsonResponse({"ok": True, "cart_count": total_items, "added_qty": qty})
-
-    # Fallback non-AJAX : revenir à la page précédente
     return redirect(request.META.get("HTTP_REFERER") or '/')
-
-
-# # AUTHENTIFICATION
-#
-# def signup_view(request):
-#     if request.method == "POST":
-#         form = UserCreationForm(request.POST)
-#         if form.is_valid():
-#             user = form.save()
-#             login(request, user)  # connecte l'utilisateur après inscription
-#             return redirect("home")
-#     else:
-#         form = UserCreationForm()
-#     return render(request, "tickets/signup.html", {"form": form})
-#On garde plutôt signup_login_view, on évite le usercreationform pour le moment
 
 # GESTION DES OFFRES (CRUD)
 
@@ -183,7 +160,6 @@ def _get_cart_dict(request):
         for oid in cart:
             k = str(int(oid))
             d[k] = d.get(k, 0) + 1
-            #ajout ancien d[str(oid)] = d.get(str(oid), 0) + 1 ET pas les deux lignes du dessus
         cart = d
     return cart
 
@@ -271,7 +247,7 @@ def remove_from_cart_view(request, offer_id):
 
 
 def signup_login_view(request):
-    """ Page 'Login' transformée en inscription :
+    """ Page 'Login' :
         - Prénom, Nom, Email, Mot de passe (+ confirmation)
         - Crée l’utilisateur, puis le connecte et redirige vers l’accueil
     """
@@ -279,12 +255,8 @@ def signup_login_view(request):
         form = SignupLoginForm(request.POST)
         if form.is_valid():
             user = form.save()
-            #crée un profil s'il n'existe pas (verify_email_view l'attend)
-            Profile.objects.get_or_create(user=user)
-            _send_verify_email(request, user)
-            messages.success(request, f"Bienvenue {user.first_name} ! Un email de vérification t'a été envoyé.") #envoie le mail de vérification
+            messages.success(request, f"Bienvenue {user.first_name} !") #peut-être aussi a supprimer
             login(request, user)
-            #ajout en dessous
             next_url = request.POST.get("next") or request.GET.get("next") or reverse("home")
             return redirect(next_url)
     else:
@@ -335,81 +307,3 @@ def signin_view(request):
             "signin_error": "Email ou mot de passe invalide.",
         }
         return render(request, "tickets/login.html", ctx)
-    #GET -> renvoie vers la page d'inscription/connexion
-#     return redirect("signup")
-#         else:
-#             data["count"] += 1
-#             cache.set(key, data, timeout=15 * 60) #15min
-#             from .forms import SignupLoginForm
-#             form = SignupLoginForm()
-#             ctx = {
-#                 "form": form,
-#                 "open_signin": True,
-#                 "signin_error": "Email ou mot de passe invalide.",
-#             }
-#             return render(request, "tickets/login.html", ctx)
-#
-#     return redirect("login")
-# #ajouté pour aller avec le signin_view
-# def _rate_key(request, email):
-#     ip = request.META.get("REMOTE_ADDR", "ip-unknown")
-#     return f"signin:{ip}:{email.lower()}"
-
-#Partie mail de vérification
-def _send_verify_email(request, user):
-    token = make_email_token(user)
-    verify_url = request.build_absolute_uri(reverse("verify_email") + f"?token={token}")
-    subject = "Validez votre email - JO 2024"
-    message = (
-        f"Bonjour {user.first_name},\n\n"
-        f"Merci d'avoir créé un compte, Pour vérifier votre email, cliquez sur le lien :\n{verify_url}\n\n"
-        "Ce lien expire dans 3 jours."
-    )
-    send_mail(subject, message, None, [user.email], fail_silently=False)
-#l'expediteur globale est defini dans settings.py - DEFAULT_FROM_EMAIL
-
-#Pour la vérification par email
-@login_required
-def verify_email_view(request):
-    token = request.GET.get("token")
-    if not token:
-        messages.error(request, "Lien de vérification invalide.")
-        return redirect("home")
-
-    user_id, email = read_email_token(token)
-    if not user_id or user_id != request.user.id or email.lower() != request.user.email.lower():
-        messages.error(request, "Lien de vérification invalide ou expiré.")
-        return redirect("home")
-
-    profile, _ = Profile.objects.get_or_create(user=request.user)
-    if not profile.email_verified:
-        profile.email_verified = True
-        profile.save()
-        messages.success(request, "Votre adresse email a été vérifiée. Merci !")
-    else:
-        messages.info(request, "Votre adresse email était déjà vérifiée.")
-    return redirect("home")
-
-#pour le renvoie de mail
-@login_required
-def resend_verify_email_view(request):
-    # Si déjà vérifié, inutile
-    profile = Profile.objects.get(user=request.user)
-    if profile.email_verified:
-        messages.info(request, "Votre e-mail est déjà vérifié.")
-        return redirect("home")
-
-    # Anti-spam : 1 envoi max toutes les 5 minutes
-    key = f"resend_verify:{request.user.id}"
-    last_ts = cache.get(key)
-    if last_ts:
-        messages.warning(request, "Vous avez déjà demandé un envoi récemment. Réessayez dans quelques minutes.")
-        return redirect("home")
-
-    # Envoi
-    _send_verify_email(request, request.user)
-    messages.success(request, "Un nouveau lien de vérification vous a été envoyé par e-mail.")
-
-    # Pose un verrou de 5 minutes
-    cache.set(key, timezone.now().timestamp(), timeout=5*60)
-    return redirect("home")

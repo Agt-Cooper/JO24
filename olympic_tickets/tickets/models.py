@@ -26,11 +26,10 @@ class Offer(models.Model):
     def __str__(self):
         return f'{self.name} - {self.get_offer_type_display()}' #ajout ancien self.name
 
-# Profile : clé 1 + vérification email
+# Profile : clé 1
 class Profile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     signup_key = models.CharField(max_length=64, unique=True, editable=False) # CLE 1 au signup #ajout ancien editable=False, unique=True)
-    email_verified = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
         if not self.signup_key:

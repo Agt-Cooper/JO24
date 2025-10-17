@@ -54,7 +54,7 @@ main {
     box-shadow: 0 0 10px rgba(0,0,0,0.05);
 }
 
-/* Si tu veux nav à gauche et actions complètement à droite : */
+/* Si nav à gauche et actions complètement à droite : */
 .main-nav {
     margin-left: 1rem;
 }

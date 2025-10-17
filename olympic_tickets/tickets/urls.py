@@ -20,8 +20,4 @@ urlpatterns = [
 
     # CRUD offres
     path('manage/offers/', views.manage_offers_view, name='offers_manage'),
-
-    #Verification de l'email
-    path('verify-email/', views.verify_email_view, name='verify_email'),
-    path('verify-email/resend/', views.resend_verify_email_view, name='resend_verify_email'),
 ]
