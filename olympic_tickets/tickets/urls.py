@@ -14,14 +14,12 @@ urlpatterns = [
 
     # Auth perso (inscription sur la page "login")
     path('login/', views.signup_login_view, name='login'),
-    path('logout/', LogoutView.as_view(), name='logout'),
+    path('signup/', views.signup_login_view, name='signup'),# (Optionnel) je garde /signup/ si je veux sa propre page#-->path('signup/', views.signup_view, name='signup'), # optionnel si sur même page
     path('signin/', views.signin_view, name='signin'), # Ajout pour la partie pop up déjà un compte
+    path('logout/', LogoutView.as_view(next_page='home'), name='logout'),
 
     # CRUD offres
     path('manage/offers/', views.manage_offers_view, name='offers_manage'),
-
-    # (Optionnel) je garde /signup/ si je veux sa propre page
-    path('signup/', views.signup_view, name='signup'), # optionnel si sur même page
 
     #Verification de l'email
     path('verify-email/', views.verify_email_view, name='verify_email'),

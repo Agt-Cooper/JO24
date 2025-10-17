@@ -64,6 +64,7 @@
             <div class="messages">
                 {% for message in messages %}
                     <div class="message {{ message.tags }}">{{ message }}</div>
+                    {# ou <li class="{{ message.tags }}">{{ message }}(</li>#}
                 {% endfor %}
             </div>
         {% endif %}

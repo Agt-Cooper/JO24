@@ -1,5 +1,4 @@
 # Create your views here.
-import profile
 
 from django.core.mail import send_mail
 from .tokens import make_email_token, read_email_token
@@ -100,18 +99,19 @@ def add_to_cart_view(request, offer_id):
     return redirect(request.META.get("HTTP_REFERER") or '/')
 
 
-# AUTHENTIFICATION
-
-def signup_view(request):
-    if request.method == "POST":
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            login(request, user)  # connecte l'utilisateur après inscription
-            return redirect("home")
-    else:
-        form = UserCreationForm()
-    return render(request, "tickets/signup.html", {"form": form})
+# # AUTHENTIFICATION
+#
+# def signup_view(request):
+#     if request.method == "POST":
+#         form = UserCreationForm(request.POST)
+#         if form.is_valid():
+#             user = form.save()
+#             login(request, user)  # connecte l'utilisateur après inscription
+#             return redirect("home")
+#     else:
+#         form = UserCreationForm()
+#     return render(request, "tickets/signup.html", {"form": form})
+#On garde plutôt signup_login_view, on évite le usercreationform pour le moment
 
 # GESTION DES OFFRES (CRUD)
 
@@ -269,17 +269,6 @@ def remove_from_cart_view(request, offer_id):
     })
 
 
-#Partie mail de vérification
-def _send_verify_email(request, user):
-    token = make_email_token(user)
-    verify_url = request.build_absolute_uri(reverse("verify_email") + f"?token={token}")
-    subject = "Validez votre email - JO 2024"
-    message = (
-        f"Bonjour {user.first_name},\n\n"
-        f"Merci de créer un compte, Pour vérifier votre email, cliquez sur le lien :\n{verify_url}\n\n"
-        "Ce lien expire dans 3 jours."
-    )
-    send_mail(subject, message, None, [user.email], fail_silently=False)
 
 def signup_login_view(request):
     """ Page 'Login' transformée en inscription :
@@ -290,9 +279,14 @@ def signup_login_view(request):
         form = SignupLoginForm(request.POST)
         if form.is_valid():
             user = form.save()
-            _send_verify_email(request, user) #envoie le mail de vérification
+            #crée un profil s'il n'existe pas (verify_email_view l'attend)
+            Profile.objects.get_or_create(user=user)
+            _send_verify_email(request, user)
+            messages.success(request, f"Bienvenue {user.first_name} ! Un email de vérification t'a été envoyé.") #envoie le mail de vérification
             login(request, user)
-            return redirect("home")
+            #ajout en dessous
+            next_url = request.POST.get("next") or request.GET.get("next") or reverse("home")
+            return redirect(next_url)
     else:
         form = SignupLoginForm()
     return render(request, "tickets/login.html", {"form": form})
@@ -312,7 +306,10 @@ def signin_view(request):
         if data["count"] >= 5:
             from .forms import SignupLoginForm
             form = SignupLoginForm()
-            ctx = {"form": form, "open_signin": True, "signin_error": "Trop de tentatives. Réessayer dans quelques minutes",
+            ctx = {
+                "form": form,
+                "open_signin": True,
+                "signin_error": "Trop de tentatives. Réessayer dans quelques minutes",
             }
             return render(request, "tickets/login.html", ctx)
 
@@ -327,23 +324,49 @@ def signin_view(request):
             cache.delete(key) #sert a reset la fenetre
             login(request, user)
             return redirect(next_url)
-        else:
-            data["count"] += 1
-            cache.set(key, data, timeout=15 * 60) #15min
-            from .forms import SignupLoginForm
-            form = SignupLoginForm
-            ctx = {
-                "form": form,
-                "open_signin": True,
-                "signin_error": "Email ou mot de passe invalide.",
-            }
-            return render(request, "tickets/login.html", ctx)
+        #échec
+        data["count"] += 1
+        cache.set(key, data, timeout=15 * 60)
+        from .forms import SignupLoginForm
+        form = SignupLoginForm()
+        ctx = {
+            "form": form,
+            "open_signin": True,
+            "signin_error": "Email ou mot de passe invalide.",
+        }
+        return render(request, "tickets/login.html", ctx)
+    #GET -> renvoie vers la page d'inscription/connexion
+#     return redirect("signup")
+#         else:
+#             data["count"] += 1
+#             cache.set(key, data, timeout=15 * 60) #15min
+#             from .forms import SignupLoginForm
+#             form = SignupLoginForm()
+#             ctx = {
+#                 "form": form,
+#                 "open_signin": True,
+#                 "signin_error": "Email ou mot de passe invalide.",
+#             }
+#             return render(request, "tickets/login.html", ctx)
+#
+#     return redirect("login")
+# #ajouté pour aller avec le signin_view
+# def _rate_key(request, email):
+#     ip = request.META.get("REMOTE_ADDR", "ip-unknown")
+#     return f"signin:{ip}:{email.lower()}"
 
-    return redirect("login")
-#ajouté pour aller avec le signin_view
-def _rate_key(request, email):
-    ip = request.META.get("REMOTE_ADDR", "ip-unknown")
-    return f"signin:{ip}:{email.lower()}"
+#Partie mail de vérification
+def _send_verify_email(request, user):
+    token = make_email_token(user)
+    verify_url = request.build_absolute_uri(reverse("verify_email") + f"?token={token}")
+    subject = "Validez votre email - JO 2024"
+    message = (
+        f"Bonjour {user.first_name},\n\n"
+        f"Merci d'avoir créé un compte, Pour vérifier votre email, cliquez sur le lien :\n{verify_url}\n\n"
+        "Ce lien expire dans 3 jours."
+    )
+    send_mail(subject, message, None, [user.email], fail_silently=False)
+#l'expediteur globale est defini dans settings.py - DEFAULT_FROM_EMAIL
 
 #Pour la vérification par email
 @login_required
@@ -358,7 +381,7 @@ def verify_email_view(request):
         messages.error(request, "Lien de vérification invalide ou expiré.")
         return redirect("home")
 
-    profile = Profile.objects.get(user=request.user)
+    profile, _ = Profile.objects.get_or_create(user=request.user)
     if not profile.email_verified:
         profile.email_verified = True
         profile.save()
