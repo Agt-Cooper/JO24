@@ -254,7 +254,7 @@ def signup_login_view(request):
         form = SignupLoginForm(request.POST)
         if form.is_valid():
             user = form.save()
-            messages.success(request, f"Bienvenue {user.first_name} !") #peut-être aussi a supprimer
+            messages.success(request, f"Bienvenue {user.first_name} ! Votre nom d'utilisateur est {user.username}.")
             login(request, user)
             next_url = request.POST.get("next") or request.GET.get("next") or reverse("home")
             return redirect(next_url)
@@ -264,12 +264,7 @@ def signup_login_view(request):
 
 # Partie ajoutée pour le popup
 
-# views.py (extraits utiles)
-from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login
-from django.core.cache import cache
-from django.utils import timezone
-from django.urls import reverse
+
 
 def _rate_key(request, username: str) -> str:
     """
@@ -326,53 +321,3 @@ def signin_view(request):
     from .forms import SignupLoginForm
     form = SignupLoginForm()
     return render(request, "tickets/login.html", {"form": form})
-
-
-# def signin_view(request):
-#     """Connexion via usermail + mot de passe (utilisée par la modale)."""
-#     if request.method == "POST":
-#         email = (request.POST.get("email") or "").strip().lower()
-#         password = request.POST.get("password") or ""
-#         next_url = request.POST.get("next") or request.GET.get("next") or reverse("home")
-#
-#         # RateLimit: 5 tentives par 15min par (ip+email)
-#         key = _rate_key(request, email)
-#         data = cache.get(key) or {"count": 0, "first" : timezone.now()}
-#         if data["count"] >= 5:
-#             from .forms import SignupLoginForm
-#             form = SignupLoginForm()
-#             ctx = {
-#                 "form": form,
-#                 "open_signin": True,
-#                 "signin_error": "Trop de tentatives. Réessayer dans quelques minutes",
-#             }
-#             return render(request, "tickets/login.html", ctx)
-#
-#         #Auth
-#         User = get_user_model()
-#         user_obj = User.objects.filter(email__iexact=email).first()
-#         user = None
-#         if user_obj:
-#             # NB: username = user_obj.username (si AUTH_USER_MODEL personnalisé, adapter)
-#             user = authenticate(request, username=user_obj.username, password=password)
-#         if user:
-#             cache.delete(key) #sert a reset la fenetre
-#             login(request, user)
-#             return redirect(next_url)
-#         #échec
-#         data["count"] += 1
-#         cache.set(key, data, timeout=15 * 60)
-#         from .forms import SignupLoginForm
-#         form = SignupLoginForm()
-#         ctx = {
-#             "form": form,
-#             "open_signin": True,
-#             "signin_error": "Email ou mot de passe invalide.",
-#         }
-#         return render(request, "tickets/login.html", ctx)
-#
-# # Partie liée aux tentatives de connexion
-# def _rate_key(request, email: str) -> str:
-#     ip = request.META.get("REMOTE_ADDR", "unknown")
-#     email_norm = (email or "").strip().lower()
-#     return f"signin_rate:{ip}:{email_norm}"
