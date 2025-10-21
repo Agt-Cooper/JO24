@@ -12,6 +12,7 @@ from .models import Offer, Profile
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login, authenticate#, get_user_model
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.admin.views.decorators import staff_member_required
 from django.urls import reverse
 from .forms import SignupLoginForm #OfferForm en import local dans manage_offers_view, de cette façon l'import ne s'exécute qu'au moment où la fonction est appelée
 from django.http import JsonResponse, HttpResponseBadRequest  #ajout du httpResponseBadRequest
@@ -321,3 +322,9 @@ def signin_view(request):
     from .forms import SignupLoginForm
     form = SignupLoginForm()
     return render(request, "tickets/login.html", {"form": form})
+
+
+@staff_member_required
+def offers_manage_view(request):
+    #exemple de rendu (adapte le template/ctx) à détailler
+    return render(request, "tickets/offers_manage.html", {"title": "Gestion des offres"})

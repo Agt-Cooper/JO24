@@ -20,4 +20,7 @@ urlpatterns = [
 
     # CRUD offres
     path('manage/offers/', views.manage_offers_view, name='offers_manage'),
+
+    #lié au staff_member_required pour la redirection
+    path('offers/manage/', views.offers_manage_view, name='offers_manage'),
 ]

@@ -30,3 +30,10 @@ class SigninViewTests(TestCase):
         }, follow=False)
         self.assertEqual(resp.status_code, 302)
         self.assertIn(reverse("home"), resp["Location"])
+
+    def test_missing_fields_do_not_increment_rate_counter(self):
+        #username ou password vides donc message mais pas d'incrément de quota agressif
+        self.client.post(self.url, {"username": "", "password": ""})
+        #possible ensuite de se connecter normalement
+        resp = self.client.post(self.url, {"username": "bob", "password": "My$ecret123"}, follow=True)
+        self.assertTrue(resp.context["user"].is_authenticated)
