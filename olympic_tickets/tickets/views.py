@@ -98,57 +98,57 @@ def _is_staff_or_superuser(user):
     return user.is_authenticated and (user.is_staff or user.is_superuser)
 
 
-@login_required
-@user_passes_test(_is_staff_or_superuser)
-def manage_offers_view(request):
-    """
-    Page unique de gestion des offres :
-    - GET : liste + formulaire (création ou édition si ?edit=<pk>)
-    - POST : create / update / delete selon `action`
-    """
-    from .forms import OfferForm  # import ici pour éviter les boucles
-
-    edit_id = request.GET.get("edit")
-    offer_to_edit = None
-    if edit_id:
-        offer_to_edit = get_object_or_404(Offer, pk=int(edit_id)) #ajout ancien pk=edit_id)
-
-    if request.method == "POST":
-        action = request.POST.get("action")
-
-        if action == "create":
-            form = OfferForm(request.POST)
-            if form.is_valid():
-                form.save()
-                return redirect(reverse("offers_manage"))
-
-        elif action == "update":
-            offer_id = request.POST.get("offer_id")
-            offer = get_object_or_404(Offer, pk=int(offer_id)) #ajout ancien pk=offer_id)
-            form = OfferForm(request.POST, instance=offer)
-            if form.is_valid():
-                form.save()
-                return redirect(reverse("offers_manage"))
-
-        elif action == "delete":
-            offer_id = request.POST.get("offer_id")
-            offer = get_object_or_404(Offer, pk=int(offer_id)) #ajout ancien pk=offer_id)
-            offer.delete()
-            return redirect(reverse("offers_manage"))
-
-        # Si l’action est inconnue → redirection simple
-        return redirect(reverse("offers_manage"))
-
-    # GET : afficher formulaire (vide ou édition)
-    form = OfferForm(instance=offer_to_edit) if offer_to_edit else OfferForm()
-    offers = Offer.objects.order_by("name")
-
-    return render(request, "tickets/offers_manage.html", {
-        "offers": offers,
-        "form": form,
-        "is_editing": bool(offer_to_edit),
-        "offer_being_edited": offer_to_edit,
-    })
+# @login_required
+# @user_passes_test(_is_staff_or_superuser)
+# def manage_offers_view(request):
+#     """
+#     Page unique de gestion des offres :
+#     - GET : liste + formulaire (création ou édition si ?edit=<pk>)
+#     - POST : create / update / delete selon `action`
+#     """
+#     from .forms import OfferForm  # import ici pour éviter les boucles
+#
+#     edit_id = request.GET.get("edit")
+#     offer_to_edit = None
+#     if edit_id:
+#         offer_to_edit = get_object_or_404(Offer, pk=int(edit_id)) #ajout ancien pk=edit_id)
+#
+#     if request.method == "POST":
+#         action = request.POST.get("action")
+#
+#         if action == "create":
+#             form = OfferForm(request.POST)
+#             if form.is_valid():
+#                 form.save()
+#                 return redirect(reverse("offers_manage"))
+#
+#         elif action == "update":
+#             offer_id = request.POST.get("offer_id")
+#             offer = get_object_or_404(Offer, pk=int(offer_id)) #ajout ancien pk=offer_id)
+#             form = OfferForm(request.POST, instance=offer)
+#             if form.is_valid():
+#                 form.save()
+#                 return redirect(reverse("offers_manage"))
+#
+#         elif action == "delete":
+#             offer_id = request.POST.get("offer_id")
+#             offer = get_object_or_404(Offer, pk=int(offer_id)) #ajout ancien pk=offer_id)
+#             offer.delete()
+#             return redirect(reverse("offers_manage"))
+#
+#         # Si l’action est inconnue → redirection simple
+#         return redirect(reverse("offers_manage"))
+#
+#     # GET : afficher formulaire (vide ou édition)
+#     form = OfferForm(instance=offer_to_edit) if offer_to_edit else OfferForm()
+#     offers = Offer.objects.order_by("name")
+#
+#     return render(request, "tickets/offers_manage.html", {
+#         "offers": offers,
+#         "form": form,
+#         "is_editing": bool(offer_to_edit),
+#         "offer_being_edited": offer_to_edit,
+#     })
 
 # Les deux vues suivantes concernent l'ajout suppression des quantités dans le panier
 
@@ -327,4 +327,49 @@ def signin_view(request):
 @staff_member_required
 def offers_manage_view(request):
     #exemple de rendu (adapte le template/ctx) à détailler
-    return render(request, "tickets/offers_manage.html", {"title": "Gestion des offres"})
+    """
+        Page unique de gestion des offres :
+        - GET : liste + formulaire (création ou édition si ?edit=<pk>)
+        - POST : create / update / delete selon `action`
+        """
+    from .forms import OfferForm
+
+    edit_id = request.GET.get("edit")
+    offer_to_edit = None
+    if edit_id:
+        offer_to_edit = get_object_or_404(Offer, pk=int(edit_id))
+
+    if request.method == "POST":
+        action = request.POST.get("action")
+        if action == "create":
+            form = OfferForm(request.POST)
+            if form.is_valid():
+                form.save()
+                return redirect(reverse("offers_manage"))
+        elif action == "update":
+            offer_id = int(request.POST.get("offer_id"))
+            offer = get_object_or_404(Offer, pk=offer_id)
+            form = OfferForm(request.POST, instance=offer)
+            if form.is_valid():
+                form.save()
+                return redirect(reverse("offers_manage"))
+        elif action == "delete":
+            offer_id = int(request.POST.get("offer_id"))
+            offer = get_object_or_404(Offer, pk=offer_id)
+            offer.delete()
+            return redirect(reverse("offers_manage"))
+
+        # action inconnue -> retour simple
+        return redirect(reverse("offers_manage"))
+
+    # GET
+    form = OfferForm(instance=offer_to_edit) if offer_to_edit else OfferForm()
+    offers = Offer.objects.order_by("name")
+
+    return render(request, "tickets/offers_manage.html", {
+        "offers": offers,
+        "form": form,
+        "is_editing": bool(offer_to_edit),
+        "offer_being_edited": offer_to_edit,
+    })
+    #return render(request, "tickets/offers_manage.html", {"title": "Gestion des offres"})

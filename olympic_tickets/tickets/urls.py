@@ -19,7 +19,7 @@ urlpatterns = [
     path('logout/', LogoutView.as_view(next_page='home'), name='logout'),
 
     # CRUD offres
-    path('manage/offers/', views.manage_offers_view, name='offers_manage'),
+    #path('manage/offers/', views.manage_offers_view, name='offers_manage'),
 
     #lié au staff_member_required pour la redirection
     path('offers/manage/', views.offers_manage_view, name='offers_manage'),
