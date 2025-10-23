@@ -1,18 +1,22 @@
 from django.core.management.base import BaseCommand, CommandError
 from decimal import Decimal
+from django.db.models import Q
 from tickets.models import Offer
 
 class Command(BaseCommand):
     help = (
-        "Crée des offres Solo/Duo/Famille pour chaque épreuve indiquée.\n"
+        "Crée (ou met à jour) des offres Solo/Duo/Famille pour chaque épreuve donnée, "
+        "avec PRIX FIXES codés en dur.\n"
         "Usage :\n"
         "  python manage.py seed_offers --events 'Natation,Athlétisme,Gymnastique'\n"
         "Options :\n"
-        "  --reset         -> supprime d'abord les offres liées aux épreuves ciblées\n"
-        "  --solo 25.00    -> prix solo personnalisé (par défaut 25.00)\n"
-        "  --duo  40.00    -> prix duo  personnalisé (par défaut 40.00)\n"
-        "  --famille 75.00-> prix famille personnalisé (par défaut 75.00)\n"
+        "  --reset  -> supprime d'abord les offres existantes pour ces épreuves\n"
     )
+
+    # === PRIX FIXES COMMUNS À TOUTES LES ÉPREUVES ===
+    PRICE_SOLO = Decimal("25.00")
+    PRICE_DUO = Decimal("40.00")
+    PRICE_FAMILLE = Decimal("75.00")
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -24,74 +28,52 @@ class Command(BaseCommand):
         parser.add_argument(
             "--reset",
             action="store_true",
-            help="Supprime les offres existantes des épreuves ciblées avant de créer.",
+            help="Supprime les offres existantes des épreuves ciblées avant de (re)créer.",
         )
-        parser.add_argument("--solo", type=str, default="25.00", help="Prix Solo (default 25.00)")
-        parser.add_argument("--duo", type=str, default="40.00", help="Prix Duo (default 40.00)")
-        parser.add_argument("--famille", type=str, default="75.00", help="Prix Famille (default 75.00)")
 
     def handle(self, *args, **opts):
         # 1) Parse des épreuves
         raw = opts["events"]
         events = [e.strip() for e in raw.split(",") if e.strip()]
         if not events:
-            raise CommandError("Aucune épreuve fournie. Utilise --events 'Natation,Athlétisme'.")
+            raise CommandError("Aucune épreuve fournie. Utilise --events 'Natation,Athlétisme, Gymnastique'.")
 
-        # 2) Prix
-        try:
-            price_solo = Decimal(opts["solo"])
-            price_duo = Decimal(opts["duo"])
-            price_famille = Decimal(opts["famille"])
-        except Exception as exc:
-            raise CommandError(f"Prix invalide : {exc}")
-
-        # 3) Suppression (optionnelle) des offres existantes ciblées
-        #    On supprime en filtrant par les noms générés "{epreuve} - Solo/Duo/Famille"
+        # 2) Reset optionnel (supprime les deux styles : ancien 'Épreuve - Solo' et nouveau 'name=Épreuve')
         if opts["reset"]:
-            to_delete = []
+            q = Q()
             for e in events:
-                to_delete.extend([
-                    f"{e} - Solo",
-                    f"{e} - Duo",
-                    f"{e} - Famille",
-                ])
-            deleted_count, _ = Offer.objects.filter(name__in=to_delete).delete()
-            self.stdout.write(self.style.WARNING(f"Reset : {deleted_count} offre(s) supprimée(s)."))
+                q |= Q(name=e) | Q(name__startswith=f"{e} - ")
+            deleted, _ = Offer.objects.filter(q).delete()
+            self.stdout.write(self.style.WARNING(f"Reset : {deleted} offre(s) supprimée(s)."))
 
-        # 4) Génération / upsert des offres
+        # 3) Matrice (type, prix, description)
+        matrix = [
+            ("solo",    self.PRICE_SOLO,    "1 personne"),
+            ("duo",     self.PRICE_DUO,     "2 personnes"),
+            ("famille", self.PRICE_FAMILLE, "4 personnes"),
+        ]
+
+        # 4) Upsert (name = épreuve, clé = (name, offer_type))
         created, updated = 0, 0
         for epreuve in events:
-            rows = [
-                {
-                    "name": f"{epreuve}",
-                    "offer_type": "solo",
-                    "description": f"Accès {epreuve} - 1 personne",
-                    "price": price_solo,
-                },
-                {
-                    "name": f"{epreuve}",
-                    "offer_type": "duo",
-                    "description": f"Accès {epreuve} - 2 personnes",
-                    "price": price_duo,
-                },
-                {
-                    "name": f"{epreuve}",
-                    "offer_type": "famille",
-                    "description": f"Accès {epreuve} - 4 personnes",
-                    "price": price_famille,
-                },
-            ]
-            for data in rows:
+            for offer_type, price, ppl in matrix:
+                defaults = dict(
+                    name=epreuve,
+                    offer_type=offer_type,
+                    description=f"Accès {epreuve} - {ppl}",
+                    price=price,
+                )
                 obj, was_created = Offer.objects.update_or_create(
-                    name=data["name"],  # clé fonctionnelle : le nom complet sert d’identifiant
-                    defaults=data,
+                    name=epreuve,
+                    offer_type=offer_type,
+                    defaults=defaults,
                 )
                 if was_created:
                     created += 1
-                    self.stdout.write(self.style.SUCCESS(f"Créé : {obj.name}"))
+                    self.stdout.write(self.style.SUCCESS(f"Créé : {obj.name} ({offer_type})"))
                 else:
                     updated += 1
-                    self.stdout.write(self.style.NOTICE(f"MàJ  : {obj.name}"))
+                    self.stdout.write(self.style.NOTICE(f"MàJ  : {obj.name} ({offer_type})"))
 
         self.stdout.write(self.style.SUCCESS(
             f"Terminé. Créés: {created} | Mis à jour: {updated} | Épreuves: {len(events)}"
