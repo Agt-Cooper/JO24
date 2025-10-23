@@ -20,7 +20,7 @@ import dj_database_url  #mis en place pour lire JAWSDB_URL
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Charge les variables à partir de .env
-load_dotenv()
+load_dotenv(BASE_DIR / '.env')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -31,7 +31,11 @@ SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev-secret-key")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", "True") == "True"
 
-ALLOWED_HOSTS = ( ["*"] if DEBUG else os.getenv("ALLOWED_HOSTS", "").split(",") )
+if DEBUG:
+    ALLOWED_HOSTS = ["*"]
+else:
+    ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",")
+#utilisé pour le déploiement, je teste un autre car souci pour retour localALLOWED_HOSTS = ( ["*"] if DEBUG else os.getenv("ALLOWED_HOSTS", "").split(",") )
 #ALLOWED_HOSTS = ["localhost", "127.0.0.1", ".herokuapp.com"]
 
 _raw_csrf = os.getenv("CSRF_TRUSTED_ORIGINS", "")
