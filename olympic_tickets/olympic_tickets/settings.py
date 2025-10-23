@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 import os
 from pathlib import Path
+
+import MySQLdb
 from dotenv import load_dotenv
 import dj_database_url  #mis en place pour lire JAWSDB_URL
 
@@ -32,7 +34,8 @@ DEBUG = os.getenv("DEBUG", "True") == "True"
 ALLOWED_HOSTS = ( ["*"] if DEBUG else os.getenv("ALLOWED_HOSTS", "").split(",") )
 #ALLOWED_HOSTS = ["localhost", "127.0.0.1", ".herokuapp.com"]
 
-CSRF_TRUSTED_ORIGINS = [ *(os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",")) ]
+_raw_csrf = os.getenv("CSRF_TRUSTED_ORIGINS", "")
+CSRF_TRUSTED_ORIGINS = [o.strip() for o in _raw_csrf.split(",") if o.strip()]
 
 # Applications
 
@@ -104,7 +107,12 @@ _db_url = (
     or os.getenv('CLEARDB_DATABASE_URL')
 )
 if _db_url:
-    DATABASES['default'] = dj_database_url.parse(_db_url, conn_max_age=600)
+    cfg = dj_database_url.parse(_db_url, conn_max_age=600)
+    #ajouts propre a MysQL
+    if cfg.get('ENGINE', '').endswith('mysql'):
+        cfg['OPTIONS'].setdefault('charset', 'utf8mb4')
+        cfg['OPTIONS'].setdefault('init_command', 'SET sql_mode="STRICT_TRANS_TABLES"')
+    DATABASES['default'] = cfg
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
