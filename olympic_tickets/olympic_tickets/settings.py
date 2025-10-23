@@ -110,6 +110,7 @@ if _db_url:
     cfg = dj_database_url.parse(_db_url, conn_max_age=600)
     #ajouts propre a MysQL
     if cfg.get('ENGINE', '').endswith('mysql'):
+        cfg.setdefault('OPTIONS',{})
         cfg['OPTIONS'].setdefault('charset', 'utf8mb4')
         cfg['OPTIONS'].setdefault('init_command', 'SET sql_mode="STRICT_TRANS_TABLES"')
     DATABASES['default'] = cfg
