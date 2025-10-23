@@ -20,11 +20,14 @@ class Offer(models.Model):
 
     name = models.CharField(max_length=100)
     offer_type = models.CharField(max_length=10, choices=OFFER_TYPES)
-    description = models.TextField(blank=True)  #ajout ancien ()
+    description = models.TextField(blank=True)
     price = models.DecimalField(max_digits=6, decimal_places=2)
 
     def __str__(self):
-        return f'{self.name} - {self.get_offer_type_display()}' #ajout ancien self.name
+        return f'{self.name} - {self.get_offer_type_display()}'
+
+    class Meta:
+        unique_together = ('name', 'offer_type') #pour empcher les doublons
 
 # Profile : clé 1
 class Profile(models.Model):
