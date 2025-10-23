@@ -4,7 +4,9 @@ from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
-import secrets
+import secrets, qrcode
+from io import BytesIO
+from django.core.files.base import ContentFile
 
 # Les offres
 class Offer(models.Model):
@@ -59,13 +61,28 @@ class Order(models.Model):
         return f'Order #{self.id} - {self.user} - {self.status}'
 
 class OrderItem(models.Model):
-    order = models.ForeignKey(Order, related_name="items", on_delete=models.CASCADE)
-    offer = models.ForeignKey('Offer', on_delete=models.PROTECT)
+    order = models.ForeignKey("Order", on_delete=models.CASCADE, related_name="items")
+    offer = models.ForeignKey("Offer", on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)
-    unit_price = models.DecimalField(max_digits=8, decimal_places=2)
-    #ajout ligne suivante
-    def __str__(self):
-        return f'{self.offer} x {self.quantity}'
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+
+    # Ajouts pour e-billet :
+    purchase_key = models.CharField(max_length=100, blank=True, null=True)
+    final_ticket_key = models.CharField(max_length=255, blank=True, null=True)
+    qr_code = models.ImageField(upload_to="tickets_qr/", blank=True, null=True)
+
+    def generate_ticket(self, user_key):
+        import secrets
+        self.purchase_key = secrets.token_urlsafe(32)
+        self.final_ticket_key = f"{user_key}{self.purchase_key}"
+
+        # Génération du QR code
+        img = qrcode.make(self.final_ticket_key)
+        buffer = BytesIO()
+        img.save(buffer, format="PNG")
+        self.qr_code.save(f"ticket_{self.pk}.png", ContentFile(buffer.getvalue()), save=False)
+        buffer.close()
+        self.save()
 
 class Ticket(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
