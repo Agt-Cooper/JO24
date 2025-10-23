@@ -12,26 +12,29 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+import dj_database_url  #mis en place pour lire JAWSDB_URL
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-# Charger les variables d'environnement à partir du fichier .env
-load_dotenv()#(BASE_DIR / '.env')
+
+# Charge les variables à partir de .env
+load_dotenv()
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-#SECRET_KEY = 'django-insecure-kb&47k=)m)=+0qs3=3&b519fiz_c1wbu4!&6rg3r9&bwoq9bdt'
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev-secret-key")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", "True") == "True"
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", ".herokuapp.com"]
+ALLOWED_HOSTS = ( ["*"] if DEBUG else os.getenv("ALLOWED_HOSTS", "").split(",") )
+#ALLOWED_HOSTS = ["localhost", "127.0.0.1", ".herokuapp.com"]
 
+CSRF_TRUSTED_ORIGINS = [ *(os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",")) ]
 
-# Application definition
+# Applications
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -45,7 +48,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    #'whitenoise.middleware.WhiteNoiseMiddleware', # pour les fichiers statiques  A faire plus tard !!!
+    'whitenoise.middleware.WhiteNoiseMiddleware', # pour les fichiers statiques  A faire plus tard !!!
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -78,7 +81,7 @@ WSGI_APPLICATION = 'olympic_tickets.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-
+#La config locale (MySQL) lorsqu'aucune URL Heroku n'est fournie
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
@@ -87,9 +90,21 @@ DATABASES = {
         'PASSWORD': os.getenv('DB_PASSWORD'),
         'HOST': 'localhost',
         'PORT': '3306',
+        'OPTIONS': {
+            'charset': 'utf8',
+            'init_command': 'SET sql_mode="STRICT_TRANS_TABLES"',
+        }
     }
 }
 
+#Partie d'Heroku qui prendra le dessus en prod:
+_db_url = (
+    os.getenv('DATABASE_URL')
+    or os.getenv('JAWSDB_URL')
+    or os.getenv('CLEARDB_DATABASE_URL')
+)
+if _db_url:
+    DATABASES['default'] = dj_database_url.parse(_db_url, conn_max_age=600)
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -109,16 +124,20 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 # Cookies et sécurité (changer en True en prod sous HTTPS)
-SESSION_COOKIE_SECURE = False # True en prod (HTTPS)
-CSRF_COOKIE_SECURE = False # Idem
 SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY = False # garder false sinon les formules ne marcheront pas
-SECURE_HSTS_SECONDS = 0 # >0 en prod
-SECURE_SSL_REDIRECT = False # True en prod (HTTPS)
+SESSION_COOKIE_SECURE = not DEBUG # True en prod (HTTPS)
+CSRF_COOKIE_SECURE = not DEBUG # Idem
+
+SECURE_SSL_REDIRECT = not DEBUG # True en prod (HTTPS)
+SECURE_HSTS_SECONDS = 3600 if not DEBUG else 0 # >0 en prod
+
+SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
+SECURE_HSTS_PRELOAD = not DEBUG
 
 # Email (dev : console)
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend' #permet un retour des mails dans la console
-DEFAULT_FROM_EMAIL = 'no-reply@jo24.local' #défini en relation avec la vue _send_verify_email EVITE l'envoie des mails dans SPAM
+EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend') #permet un retour des mails dans la console
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL','no-reply@jo24.local') #défini en relation avec la vue _send_verify_email EVITE l'envoie des mails dans SPAM
 
 # Cache (pour rate-limit simple) --> idée futur pour un durcissement de la sécurité
 CACHES = {
@@ -143,7 +162,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 
 #emplacement où django va regrouper tous les fichiers statiques lors de collectstatic
 STATIC_ROOT = BASE_DIR / 'staticfiles'  # dossier final pour heroku
@@ -154,18 +173,18 @@ STATICFILES_DIRS = [
 ]
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
+# Redirection après connexion ou déconnexion
 
-# --- MEDIA FILES (si besoin plus tard) ---
-# MEDIA_URL = "/media/"
-# MEDIA_ROOT = BASE_DIR / "media"
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'home'
+LOGOUT_REDIRECT_URL = 'home'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Redirection après connexion ou déconnexion
 
-LOGIN_URL = 'login'
-LOGIN_REDIRECT_URL = 'home'
-LOGOUT_REDIRECT_URL = 'home'
+# --- MEDIA FILES (si besoin plus tard) ---
+# MEDIA_URL = "/media/"
+# MEDIA_ROOT = BASE_DIR / "media"

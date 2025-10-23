@@ -1,0 +1,1 @@
+web: gunicorn olympic_tickets.wsgi --log_file -
