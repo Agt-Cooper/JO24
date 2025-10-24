@@ -398,12 +398,16 @@ def my_purchases(request):
     for o in qs:
         items = []
         for it in o.items.all():
+            has_final_key = bool(
+                getattr(o.user.profile, "signup_key", "") #clé1
+                and getattr(o, "purchase_key", "") #clé2
+            )
             items.append({
                 "name": it.offer.name,
                 "unit_price": it.unit_price,
                 "quantity": it.quantity,
                 "qr": it.qr_data_uri(), #None si pas de clé finale
-                "has_final_key": bool(it.final_ticket_key),
+                "has_final_key": has_final_key,
             })
         orders_ctx.append({
             "id": o.id,
