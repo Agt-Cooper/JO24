@@ -323,21 +323,57 @@ def offers_manage_view(request):
 
 #ajout pour le paiement
 @login_required
-def payment_confirm(request, order_id):
+def payment_start(request, order_id):
+    '''
+    page mock de paiement avec le récap et le bouton pour achat
+    (ordre en pending et en attente de l'utilisateur)
+    '''
+    order = get_object_or_404(Order, pk=order_id, user=request.user, status="pending")
+    return render(request,'tickets/payment_start.html', {
+        "order": order,
+    })
+
+@login_required
+def payment_confirm(request, order_id: int):
+    '''
+    simule le payement. on aura une clé 2 pour chate offre
+    ensuite la commande passe en payé, puis on est redirigé vers mes achats
+    '''
+    if request.method != "POST": #on force la confirmation ce qui évite la génération de la clé directement
+        return redirect(reverse("payment_start", args=(order_id,)))
     order = get_object_or_404(Order, pk=order_id, user=request.user, status="pending")
 
-    # Pour chaque item, crée le ticket
-    signup_key = request.user.profile.signup_key
+    signup_key = getattr(request.user, "profile", None)
+    if not signup_key or not signup_key.signup_key:  #si profil sans clé1 alors pas de statut payé
+        return render(request, "tickets/payment_start.html", {
+            "order": order,
+            "error": "Impossible de générer le billet car la clé est manquante."
+        })
+    #gén!re un billet par ligne
     for item in order.items.all():
-        item.generate_ticket(signup_key)
+        item.generate_ticket(request.user.profile.signup_key)
 
     # statut payé
     order.status = "paid"
-    order.save()
+    order.save(update_fields=["status"])
 
     return redirect("my_purchases")
 
 @login_required
 def my_purchases(request):
-    orders = request.user.orders.filter(status="paid").prefetch_related("items", "items__offer")
-    return render(request, "tickets/my_purchases.html", {"orders": orders})
+    #liste des commandes payés avec les billets
+    orders = Order.objects.filter(user=request.user, status="paid").prefetch_related("items", "items__offer")
+    #Il faut éviter de faire la logique QR dans l'HTML, c'est mieux de faire ça pour le template
+    orders_with_qr = []
+    for order in orders:
+        items = []
+        for it in order.items.all():
+            items.append({
+                "offer": it.offer,
+                "quantity": it.quantity,
+                "unit_price": it.unit_price,
+                "final_ticket_key": it.final_ticket_key,
+                "qr_data": it.qr_data_uri(), #None si pas encore payéou généré
+            })
+        orders_with_qr.append({"order": order, "items": items})
+    return render(request, "tickets/my_purchases.html", {"orders": orders_with_qr})
