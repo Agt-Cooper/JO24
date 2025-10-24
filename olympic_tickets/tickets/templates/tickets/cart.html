@@ -46,23 +46,25 @@
         <strong>Total : <span id="total-price">{{ total_price }}</span> €</strong>
     </p>
 
-    <div class="cart-actions">
-        <form method="post" action="{% url 'checkout' %}">
-            {% csrf_token %}
-            <button class="auth-btn">Procéder au paiement</button>
-        </form>
+    <script src="{% static 'js/cart-actions.js' %}"></script>
+{% else %}
+    <p>Votre panier est vide</p>
+{% endif %}
 
-        <a href="{% url 'bundle_list' %}" class="auth-btn outline">Annuler</a>
+{# actions a garder visible #}
+    <div class="cart-actions" style="margin-top:1rem;">
+        {% if cart %}
+            <form method="post" action="{% url 'checkout' %}" style="display: inline;">
+                {% csrf_token %}
+                <button class="auth-btn">Procéder au paiement</button>
+            </form>
+        {% endif %}
+
+{#        <a href="{% url 'bundle_list' %}" class="auth-btn outline">Annuler</a>#}
         {% if has_paid_orders %}
             <a href="{% url 'my_purchases' %}" class="auth-btn outline">Voir mes billets</a>
         {% else %}
             <a href="{% url 'bundle_list' %}" class="auth-btn outline">Voir les offres</a>
         {% endif %}
     </div>
-
-    <script src="{% static 'js/cart-actions.js' %}"></script>
-
-{% else %}
-    <p>Votre panier est vide.</p>
-{% endif %}
 {% endblock %}

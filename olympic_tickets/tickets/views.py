@@ -49,9 +49,7 @@ def cart_view(request):
             items.append({'offer': offer, 'quantity': 1, 'line_total': line_total}) #ajout correction 'offer' était écrit offer
             total += line_total
 
-    has_paid_orders = False
-    if request.user.is_authenticated:
-        has_paid_orders = Order.objects.filter(user=request.user, status="paid").exists()
+    has_paid_orders = request.user.is_authenticated and Order.objects.filter(user=request.user, status="paid").exists()
 
     return render(request, 'tickets/cart.html', {'cart': items, 'total_price': total, 'has_paid_orders': has_paid_orders})
 
