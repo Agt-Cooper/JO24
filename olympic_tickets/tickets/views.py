@@ -1,4 +1,5 @@
 # Create your views here.
+import secrets
 
 from django.core.cache import cache #pour le rate-limite a la connexion
 from django.contrib import messages
@@ -343,7 +344,7 @@ def checkout_view(request):
             total += line_total
             lines.append({"offer": offer, "qty": qty, "line_total": line_total})
         return render(request, "tickets/checkout.html", {"lines": lines, "total": total})
-    #POST pour confirmer l'achat, générer la clé le QR et vider le panier
+    #POST pour confirmer l'achat, crée la commande+items ainsi que générer la clé le QR et vider le panier
     if not cart:
         messages.error(request, "Votre panier est vide.")
         return redirect("bundle")
@@ -355,6 +356,11 @@ def checkout_view(request):
         return redirect("bundle")
 
     order = Order.objects.create(user=request.user, status="pending")
+    #génère la clé 2 avant de générer les tickets
+    if not order.purchase_key:
+        order.purchase_key = secrets.token_urlsafe(32)
+        order.save(update_fields=["purchase_key"])
+
     created_any = False
     for sid, qty in cart.items():
         offer = offers.get(int(sid))
@@ -364,16 +370,16 @@ def checkout_view(request):
         if qty <= 0:
             continue
         item = OrderItem.objects.create(order=order, offer=offer, quantity=qty, unit_price=offer.price)
-        #génère clé 2 + clé finale par item
+        #génère le ticket (qr) ==> signup_key + purchase_key
         item.generate_ticket(request.user.profile.signup_key)
         created_any = True
 
-    #si aucune ligne créée
+    #si aucune ligne créée ça annule la commande
     if not created_any:
         order.delete()
         messages.error(request, "Votre panier est vide.")
         return redirect("bundle")
-
+    #paiement simulé avec statut payé
     order.status = "paid"
     order.save(update_fields=["status"])
     #pour vider le panier --à voir si je garde
