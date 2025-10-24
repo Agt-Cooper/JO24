@@ -1,0 +1,16 @@
+<h1>Mes achats</h1>
+{% for order in orders %}
+    <h3>Commande n°{{ order.id }}</h3>
+    <ul>
+        {% for item in order.items.all %}
+            <li>
+                <strong>{{ item.offer.name }}</strong> – {{ item.price }}€
+                {% if item.qr_code %}
+                    <br><img src="{{ item.qr_code.url }}" alt="QR Code" width="150">
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+{% empty %}
+    <p>Aucun achat pour le moment.</p>
+{% endfor %}

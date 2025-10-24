@@ -336,3 +336,8 @@ def payment_confirm(request, order_id):
     order.save()
 
     return redirect("my_purchases")
+
+@login_required
+def my_purchases(request):
+    orders = request.user.orders.filter(status="paid").prefetch_related("items", "items__offer")
+    return render(request, "tickets/my_purchases.html", {"orders": orders})
