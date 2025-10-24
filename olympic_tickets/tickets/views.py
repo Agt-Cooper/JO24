@@ -382,20 +382,29 @@ def checkout_view(request):
 
 @login_required
 def my_purchases(request):
-    #liste des commandes payés avec les billets
-    orders = Order.objects.filter(user=request.user, status="paid").prefetch_related("items", "items__offer")
-    return render(request, "tickets/my_purchases.html", {"orders": orders})
-    #Il faut éviter de faire la logique QR dans l'HTML, c'est mieux de faire ça pour le template
-    orders_with_qr = []
-    for order in orders:
+    qs = (
+        Order.objects.filter(user=request.user, status="paid")
+        .prefetch_related("items", "items__offer")
+        .order_by("-id")
+    )
+
+    orders_ctx = []
+    for o in qs:
         items = []
-        for it in order.items.all():
+        for it in o.items.all():
             items.append({
-                "offer": it.offer,
-                "quantity": it.quantity,
+                "name": it.offer.name,
                 "unit_price": it.unit_price,
-                "final_ticket_key": it.final_ticket_key,
-                "qr_data": it.qr_data_uri(), #None si pas encore payéou généré
+                "quantity": it.quantity,
+                "qr": it.qr_data_uri(), #None si pas de clé finale
+                "has_final_key": bool(it.final_ticket_key),
             })
-        orders_with_qr.append({"order": order, "items": items})
-    return render(request, "tickets/my_purchases.html", {"orders": orders_with_qr})
+        orders_ctx.append({
+            "id": o.id,
+            "created_at": o.created_at,
+            "items": items,
+        })
+
+    return render(request, "tickets/my_purchases.html", {
+        "orders_ctx": orders_ctx, "has_orders": bool(orders_ctx)
+    })
