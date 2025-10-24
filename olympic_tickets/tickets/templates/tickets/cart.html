@@ -47,7 +47,11 @@
     </p>
 
     <div class="cart-actions">
-        <button class="auth-btn">Procéder au paiement</button>
+        <form method="post" action="{% url 'checkout' %}">
+            {% csrf_token %}
+            <button class="auth-btn">Procéder au paiement</button>
+        </form>
+
         <a href="{% url 'bundle_list' %}" class="auth-btn outline">Annuler</a>
     </div>
 
@@ -57,27 +61,3 @@
     <p>Votre panier est vide.</p>
 {% endif %}
 {% endblock %}
-
-{% comment %}
-{% extends 'tickets/main.html' %}
-
-{% block title %}Votre panier{% endblock %}
-
-{% block content %}
-<h2>Mon panier</h2>
-
-{% if cart %}
-    <ul>
-        {% for item in cart %}
-            <li>
-                {{ item.offer.name }} - {{ item.quantity }} x {{ item.offer.price }} €
-                = <strong>{{ item.line_total }} €</strong>
-            </li>
-        {% endfor %}
-    </ul>
-    <p><strong>Total : {{ total_price }} €</strong></p>
-    <button>Procéder au paiement</button>
-{% else %}
-    <p>Votre panier est vide.</p>
-{% endif %}
-{% endblock %}{% endcomment %}

@@ -1,0 +1,15 @@
+{% extends "tickets/main.html" %}
+{% block content %}
+    <h2>Récapitulatif</h2>
+    <ul>
+        {% for l in lines %}
+            <li>{{ l.offer.name }} — x{{ l.qty }} — {{ l.line_total }} €</li>
+        {% endfor %}
+    </ul>
+    <p><strong>Total :</strong> {{ total }} €</p>
+
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn">Confirmer l'achat</button>
+    </form>
+{% endblock %}

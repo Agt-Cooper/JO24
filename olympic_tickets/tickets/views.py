@@ -7,7 +7,7 @@ from django.utils import timezone
 from decimal import Decimal
 
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Offer, Order, Profile
+from .models import Offer, Order, OrderItem, Profile
 
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login, authenticate#, get_user_model
@@ -321,41 +321,62 @@ def offers_manage_view(request):
     })
     #return render(request, "tickets/offers_manage.html", {"title": "Gestion des offres"})
 
-#ajout pour le paiement
 @login_required
-def payment_start(request, order_id):
-    '''
-    page mock de paiement avec le récap et le bouton pour achat
-    (ordre en pending et en attente de l'utilisateur)
-    '''
-    order = get_object_or_404(Order, pk=order_id, user=request.user, status="pending")
-    return render(request,'tickets/payment_start.html', {
-        "order": order,
-    })
+def checkout_view(request):
+    cart = request.session.get("cart", {})
+    #get affiche le récap et donc pas d'écriture en DB
+    if request.method == "GET":
+        if not cart:
+            messages.error(request, "Votre panier est vide.")
+            return redirect("bundle") #ou cart, à voir
+        offers_ids = [int(k) for k in cart.keys()]
+        offers = {o.id: o for o in Offer.objects.filter(id__in=offers_ids)}
+        lines, total = [], 0
+        for sid, qty in cart.items():
+            offer = offers.get(int(sid))
+            if not offer:
+                continue
+            qty = int(qty)
+            line_total = qty * offer.price
+            total += line_total
+            lines.append({"offer": offer, "qty": qty, "line_total": line_total})
+        return render(request, "tickets/checkout.html", {"lines": lines, "total": total})
+    #POST pour confirmer l'achat, générer la clé le QR et vider le panier
+    if not cart:
+        messages.error(request, "Votre panier est vide.")
+        return redirect("bundle")
 
-@login_required
-def payment_confirm(request, order_id: int):
-    '''
-    simule le payement. on aura une clé 2 pour chate offre
-    ensuite la commande passe en payé, puis on est redirigé vers mes achats
-    '''
-    if request.method != "POST": #on force la confirmation ce qui évite la génération de la clé directement
-        return redirect(reverse("payment_start", args=(order_id,)))
-    order = get_object_or_404(Order, pk=order_id, user=request.user, status="pending")
+    offer_ids = [int(k) for k in cart.keys()]
+    offers = {o.id: o for o in Offer.objects.filter(id__in=offer_ids)}
+    if not offers:
+        messages.error(request, "Aucune offre valide dans le panier.")
+        return redirect("bundle")
 
-    signup_key = getattr(request.user, "profile", None)
-    if not signup_key or not signup_key.signup_key:  #si profil sans clé1 alors pas de statut payé
-        return render(request, "tickets/payment_start.html", {
-            "order": order,
-            "error": "Impossible de générer le billet car la clé est manquante."
-        })
-    #gén!re un billet par ligne
-    for item in order.items.all():
+    order = Order.objects.create(user=request.user, status="pending")
+    created_any = False
+    for sid, qty in cart.items():
+        offer = offers.get(int(sid))
+        if not offer:
+            continue
+        qty = int(qty)
+        if qty <= 0:
+            continue
+        item = OrderItem.objects.create(order=order, offer=offer, quantity=qty, unit_price=offer.price)
+        #génère clé 2 + clé finale par item
         item.generate_ticket(request.user.profile.signup_key)
+        created_any = True
 
-    # statut payé
+    #si aucune ligne créée
+    if not created_any:
+        order.delete()
+        messages.error(request, "Votre panier est vide.")
+        return redirect("bundle")
+
     order.status = "paid"
     order.save(update_fields=["status"])
+    #pour vider le panier --à voir si je garde
+    request.session["cart"] = {}
+    request.session.modified = True
 
     return redirect("my_purchases")
 
@@ -363,6 +384,7 @@ def payment_confirm(request, order_id: int):
 def my_purchases(request):
     #liste des commandes payés avec les billets
     orders = Order.objects.filter(user=request.user, status="paid").prefetch_related("items", "items__offer")
+    return render(request, "tickets/my_purchases.html", {"orders": orders})
     #Il faut éviter de faire la logique QR dans l'HTML, c'est mieux de faire ça pour le template
     orders_with_qr = []
     for order in orders:

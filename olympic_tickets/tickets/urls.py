@@ -18,9 +18,10 @@ urlpatterns = [
     path('signin/', views.signin_view, name='signin'), # Ajout pour la partie pop up déjà un compte
     path('logout/', LogoutView.as_view(next_page='home'), name='logout'),
 
-    # CRUD offres
-    #path('manage/offers/', views.manage_offers_view, name='offers_manage'),
-
     #lié au staff_member_required pour la redirection
     path('offers/manage/', views.offers_manage_view, name='offers_manage'),
+
+    #en rapport avec la deuxième clé, paiement
+    path('checkout/', views.checkout_view, name='checkout'),
+    path('mes-achats/', views.my_purchases, name='my_purchases'),
 ]

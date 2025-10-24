@@ -1,16 +1,29 @@
-<h1>Mes achats</h1>
-{% for order in orders %}
-    <h3>Commande n°{{ order.id }}</h3>
-    <ul>
-        {% for item in order.items.all %}
-            <li>
-                <strong>{{ item.offer.name }}</strong> – {{ item.price }}€
-                {% if item.qr_code %}
-                    <br><img src="{{ item.qr_code.url }}" alt="QR Code" width="150">
-                {% endif %}
-            </li>
-        {% endfor %}
-    </ul>
-{% empty %}
-    <p>Aucun achat pour le moment.</p>
-{% endfor %}
+{% extends "tickets/main.html" %}
+{% block content %}
+    <h2>Mes achats</h2>
+
+    {% if not orders_ctx %}
+        <p>Aucun achat pour le moment.</p>
+    {% endif %}
+
+    {% for order in orders %}
+        <section style="margin:1rem 0; padding:1rem; border:1px solid #eee; border-radius:8px;">
+            <h3>Commande #{{ order.id }} ({{ order.created_at }})</h3>
+            <ul>
+                {% for it in bloc.items.all %}
+                    <li style="margin:.5rem 0;">
+                        <strong>{{ it.offer.name }}</strong>
+                        — {{ it.unit_price }} € — x{{ it.quantity }}
+                        {% with data=it.qr_data_uri %}
+                            {% if data %}
+                                <div><img src="{{ data }}" alt="QR code" width="150" height="150"></div>
+                            {% else %}
+                                <em>Billet non généré.</em>
+                            {% endif %}
+                        {% endwith %}
+                    </li>
+                {% endfor %}
+            </ul>
+        </section>
+    {% endfor %}
+{% endblock %}
