@@ -37,7 +37,7 @@ def cart_view(request):
     if isinstance(cart, dict):
         for offer_id, qty in cart.items():
             offer = get_object_or_404(Offer, id=int(offer_id))
-            line_total = offer.price * int(qty) # ajout ancien *qty
+            line_total = offer.price * int(qty)
             items.append({'offer': offer, 'quantity': int(qty), 'line_total': line_total})  #ajout ancien 'quantity': qty
             total += line_total
 
@@ -49,7 +49,11 @@ def cart_view(request):
             items.append({'offer': offer, 'quantity': 1, 'line_total': line_total}) #ajout correction 'offer' était écrit offer
             total += line_total
 
-    return render(request, 'tickets/cart.html', {'cart': items, 'total_price': total})
+    has_paid_orders = False
+    if request.user.is_authenticated:
+        has_paid_orders = Order.objects.filter(user=request.user, status="paid").exists()
+
+    return render(request, 'tickets/cart.html', {'cart': items, 'total_price': total, 'has_paid_orders': has_paid_orders})
 
 # Ajouter au panier
 @require_POST

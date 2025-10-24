@@ -53,6 +53,11 @@
         </form>
 
         <a href="{% url 'bundle_list' %}" class="auth-btn outline">Annuler</a>
+        {% if has_paid_orders %}
+            <a href="{% url 'my_purchases' %}" class="auth-btn outline">Voir mes billets</a>
+        {% else %}
+            <a href="{% url 'bundle_list' %}" class="auth-btn outline">Voir les offres</a>
+        {% endif %}
     </div>
 
     <script src="{% static 'js/cart-actions.js' %}"></script>
