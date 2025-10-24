@@ -370,8 +370,6 @@ def checkout_view(request):
         if qty <= 0:
             continue
         item = OrderItem.objects.create(order=order, offer=offer, quantity=qty, unit_price=offer.price)
-        #génère le ticket (qr) ==> signup_key + purchase_key
-        item.generate_ticket(request.user.profile.signup_key)
         created_any = True
 
     #si aucune ligne créée ça annule la commande

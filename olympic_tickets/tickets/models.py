@@ -4,7 +4,8 @@ from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
-import secrets
+import secrets, base64, qrcode
+from io import BytesIO
 from django.core.files.base import ContentFile
 
 # Les offres
@@ -65,30 +66,25 @@ class OrderItem(models.Model):
     quantity = models.PositiveIntegerField(default=1)
     unit_price = models.DecimalField(max_digits=8, decimal_places=2)
 
-    # Ajouts pour e-billet :
-    purchase_key = models.CharField(max_length=100, blank=True, null=True) #clé2
-    final_ticket_key = models.CharField(max_length=255, blank=True, null=True) #clé 1+2
-    #qr_code = models.ImageField(upload_to="tickets_qr/", blank=True, null=True)
     def __str__(self):
         return f'{self.offer} x {self.quantity}'
 
-    def generate_ticket(self, user_signup_key: str):
-        import secrets
-        self.purchase_key = secrets.token_urlsafe(32) #clé2
-        self.final_ticket_key = f"{user_signup_key}{self.purchase_key}"
-        self.save(update_fields=["purchase_key", "final_ticket_key"])
+    # clé final donc clé1+clé2
+    def final_key(self) -> str:
+        sk = self.order.user.profile.signup_key or ""
+        pk = self.order.purchase_key or ""
+        return f"{sk}{pk}"
 
-    # Génération du QR code
+    # Génération du QR code(pas en db)
     def qr_data_uri(self) -> str | None:
-        if not self.final_ticket_key:
+        payload = self.final_key()
+        if not payload:
             return None
-        import qrcode, base64
-        from io import BytesIO
-        img = qrcode.make(self.final_ticket_key)
+        img = qrcode.make(payload)
         buffer = BytesIO()
         img.save(buffer, format="png")
-        data = base64.b64encode(buffer.getvalue()).decode('ascii')
-        return f'data:image/png;base64,{data}'
+        b64 = base64.b64encode(buffer.getvalue()).decode('ascii')
+        return f'data:image/png;base64,{b64}'
 
 class Ticket(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
