@@ -1,0 +1,86 @@
+{% extends "tickets/main.html" %}
+{% block title %}Gérer les offres{% endblock %}
+
+{% block content %}
+    <h2 style="margin-bottom:1rem;">Gérer les offres</h2>
+
+    <div style="display:grid; grid-template-columns: 1.6fr .9fr; gap:1.25rem; align-items:start;">
+        <!-- Liste des offres -->
+        <section>
+            {% if offers %}
+                <table style="width:100%; border-collapse:collapse; background:#fff; border:1px solid #e6e6e6; border-radius:10px; overflow:hidden;">
+                    <thead>
+                        <tr style="background:#f7f8fa;">
+                            <th style="text-align:left; padding:.65rem .8rem; border-bottom:1px solid #e6e6e6;">Nom</th>
+                            <th style="text-align:left; padding:.65rem .8rem; border-bottom:1px solid #e6e6e6;">Type</th>
+                            <th style="text-align:left; padding:.65rem .8rem; border-bottom:1px solid #e6e6e6;">Prix (€)</th>
+                            <th style="text-align:left; padding:.65rem .8rem; border-bottom:1px solid #e6e6e6;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for o in offers %}
+                            <tr>
+                                <td style="padding:.6rem .8rem;">{{ o.name }}</td>
+                                <td style="padding:.6rem .8rem;">{{ o.get_offer_type_display }}</td>
+                                <td style="padding:.6rem .8rem;">{{ o.price }}</td>
+                                <td style="padding:.6rem .8rem; display:flex; gap:.5rem; flex-wrap:wrap;">
+                                    <a class="btn" href="?edit={{ o.pk }}">Modifier</a>
+                                    <form method="post" action="" onsubmit="return confirm('Supprimer « {{ o.name }} » ?');">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="delete">
+                                        <input type="hidden" name="offer_id" value="{{ o.pk }}">
+                                        <button type="submit" class="btn" style="background:#c0392b; border-color:#c0392b;">Supprimer</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p>Aucune offre pour le moment.</p>
+            {% endif %}
+        </section>
+
+    <!-- Formulaire (création / édition) -->
+        <aside style="background:#fff; border:1px solid #e6e6e6; border-radius:10px; padding:1rem;">
+            <h3 style="margin-bottom:.75rem;">
+                {% if is_editing %}Modifier l’offre{% else %}Nouvelle offre{% endif %}
+            </h3>
+            <form method="post" style="display:grid; gap:.75rem;">
+                {% csrf_token %}
+                {% if is_editing %}
+                    <input type="hidden" name="action" value="update">
+                    <input type="hidden" name="offer_id" value="{{ offer_being_edited.pk }}">
+                {% else %}
+                    <input type="hidden" name="action" value="create">
+                {% endif %}
+
+                {{ form.as_p }}
+
+                <div style="display:flex; gap:.5rem;">
+                    <button type="submit" class="btn">
+                        {% if is_editing %}Enregistrer{% else %}Créer{% endif %}
+                    </button>
+                    {% if is_editing %}
+                        <a class="btn" href="{% url 'offers_manage' %}" style="background:#777; border-color:#777;">Annuler</a>
+                    {% endif %}
+                </div>
+            </form>
+        </aside>
+    </div>
+
+    <style>
+        .btn {
+            display:inline-block;
+            padding:.45rem .8rem;
+            border-radius:8px;
+            background:#2d6cdf;
+            border:1px solid #2d6cdf;
+            color:#fff; text-decoration:none;
+            font-weight:600;
+            transition:filter .15s ease, transform .05s ease;
+        }
+        .btn:hover { filter:brightness(1.05); }
+        .btn:active { transform: translateY(1px); }
+    </style>
+{% endblock %}

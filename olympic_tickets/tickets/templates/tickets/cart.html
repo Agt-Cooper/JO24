@@ -1,19 +1,104 @@
 {% extends 'tickets/main.html' %}
-
+{% load static %}
 {% block title %}Votre panier{% endblock %}
 
 {% block content %}
 <h2>Mon panier</h2>
 
 {% if cart %}
-    <ul>
+    {# On place un mini formulaire caché juste pour récupérer le CSRF token #}
+    <form id="csrf-form">{% csrf_token %}</form>
+
+    <table>
+        <thead>
+        <tr>
+            <th>Offre</th>
+            <th>Prix</th>
+            <th>Quantité</th>
+            <th>Total</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
         {% for item in cart %}
-            <li>{{ item.offer.name }} - {{ item.quantity }} x {{ item.offer.price }} €</li>
+            <tr id="row-{{ item.offer.id }}">
+                <td>{{ item.offer.name }}</td>
+                <td>{{ item.offer.price }} €</td>
+                <td>
+                    <div>
+                        <button class="qty-btn" data-offer-id="{{ item.offer.id }}" data-action="dec">−</button>
+                        <input type="number" class="qty-input" id="qty-{{ item.offer.id }}" value="{{ item.quantity }}" min="1" style="width:70px;">
+                        <button class="qty-btn" data-offer-id="{{ item.offer.id }}" data-action="inc">+</button>
+                    </div>
+                </td>
+                <td>
+                    <span id="line-{{ item.offer.id }}">{{ item.line_total }} €</span>
+                </td>
+                <td>
+                    <button class="remove-btn" data-offer-id="{{ item.offer.id }}">Supprimer</button>
+                </td>
+            </tr>
         {% endfor %}
-    </ul>
-    <p><strong>Total : {{ total_price }} €</strong></p>
-    <button>Procéder au paiement</button>
+        </tbody>
+    </table>
+
+    <p>
+        <strong>Total : <span id="total-price">{{ total_price }}</span> €</strong>
+    </p>
+
+    <script src="{% static 'js/cart-actions.js' %}"></script>
 {% else %}
-    <p>Votre panier est vide.</p>
+    <p>Votre panier est vide</p>
 {% endif %}
+
+{% comment %}{# actions a garder visible #}
+    <div class="cart-actions" style="margin-top:1rem;">
+        {% if cart %}
+            <form method="post" action="{% url 'checkout' %}" style="display: inline;">
+                {% csrf_token %}
+                <button class="auth-btn">Procéder au paiement</button>
+            </form>
+        {% endif %}
+
+{#        <a href="{% url 'bundle_list' %}" class="auth-btn outline">Annuler</a>#}
+        {% if has_paid_orders %}
+            <a href="{% url 'my_purchases' %}" class="auth-btn outline">Voir mes billets</a>
+        {% else %}
+            <a href="{% url 'bundle_list' %}" class="auth-btn outline">Voir les offres</a>
+        {% endif %}
+    </div>{% endcomment %}
+    <div class="cart-actions" style="margin-top:1rem;">
+
+    {% if cart %}
+
+        <form id="real-checkout-form" method="post" action="{% url 'checkout' %}" style="display:none;">
+            {% csrf_token %}
+        </form>
+
+
+        <button type="button" id="open-payment-modal" class="auth-btn">
+            Procéder au paiement
+        </button>
+    {% endif %}
+
+    {% if has_paid_orders %}
+        <a href="{% url 'my_purchases' %}" class="auth-btn outline">Voir mes billets</a>
+    {% else %}
+        <a href="{% url 'bundle_list' %}" class="auth-btn outline">Voir les offres</a>
+    {% endif %}
+</div>
+
+<!-- popup simu paiement -->
+<div id="payment-modal" class="payment-backdrop" style="display:none;">
+    <div class="payment-box">
+        <h3>Simulation de paiement</h3>
+        <p>Ce paiement est une simulation.<br> Cliquez sur « Payer » pour confirmer.</p>
+        <button id="confirm-pay" class="auth-btn">Payer</button>
+        <button id="cancel-pay" class="auth-btn outline">Annuler</button>
+    </div>
+</div>
+
+    <link rel="stylesheet" href="{% static 'css/cart.css' %}">
+    <script src="{% static 'js/cart-payment.js' %}"></script>
+
 {% endblock %}

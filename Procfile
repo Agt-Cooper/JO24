@@ -1,0 +1,1 @@
+web: PYTHONPATH=olympic_tickets gunicorn olympic_tickets.wsgi --log-file -

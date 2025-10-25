@@ -86,7 +86,9 @@ __pycache__/
 local_settings.py
 
 .env
+.env.*
 olympic_tickets/db.sqlite3
 .venv
 *.swp
 *.sqlite3
+.idea/

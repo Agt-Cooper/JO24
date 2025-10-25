@@ -1,0 +1,70 @@
+/* Partie style pour le Panier */
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+td, th {
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+    padding: .5rem;
+}
+
+/* ligne quantité, input et boutons alignés */
+td div {
+    display: flex;
+    align-items: center;
+    gap:.4rem;
+}
+
+/* boutons +, - et supprimer */
+.qty-btn, .remove-btn {
+    padding: .2rem .5rem;
+    border: 1px solid #ccc;
+    background: #f7f7f7;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.qty-btn:hover, .remove-btn:hover {
+    filter: brightness(1.05);
+}
+
+/* Total */
+#total-price {
+    font-weight: bold;
+}
+
+p strong {
+    font-size: 1.1rem;
+    margin-top: 1rem;
+    display: inline-block;
+}
+
+/* Partie pour le bouton paiement et annuler*/
+.cart-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+/* Partie responsive : sur GSM*/
+@media (max-width: 600px) {
+    .cart-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .cart-actions {
+        width: 100%;
+        text-align: center;
+    }
+}
+
+.payment-backdrop{
+            position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.45);
+            display:flex;justify-content:center;align-items:center;z-index:1000;
+        }
+        .payment-box{
+            background:white;padding:20px;border-radius:10px;max-width:330px;text-align:center;
+            box-shadow:0 5px 15px rgba(0,0,0,.25);
+        }

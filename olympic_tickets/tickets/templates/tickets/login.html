@@ -1,0 +1,105 @@
+{% extends "tickets/main.html" %}
+{% load static %}
+
+{% block title %}Créer un compte{% endblock %}
+
+{% block content %}
+    <h2>Créer un compte</h2>
+
+    {# Messages flash éventuels #}
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+                <li class="message {{ message.tags }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    {# Formulaire d'inscription #}
+    <form method="post" action="{% url 'signup' %}" class="auth-form" novalidate>
+        {% csrf_token %}
+
+        {# Affiche les erreurs globales du formulaire #}
+        {% if form.non_field_errors %}
+            <div class="form-errors" role="alert">
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+
+        {{ form.as_p }}
+
+        {# Propage le paramètre 'next' pour la redirection après inscription #}
+        {% if request.GET.next or request.POST.next %}
+            <input type="hidden" name="next" value="{{ request.GET.next|default:request.POST.next }}">
+        {% endif %}
+
+        <button type="submit" class="auth-btn">Créer mon compte</button>
+    </form>
+
+    <p style="margin-top: 1rem;">
+        <button type="button"
+                class="auth-btn outline"
+                id="open-signin"
+                aria-haspopup="dialog"
+                aria-controls="signin-modal">
+            Déjà inscrit ?
+        </button>
+    </p>
+
+    {# ------- Modale Signin ------- #}
+    <div class="modal" id="signin-modal" aria-hidden="true">
+        <div class="modal-backdrop" data-close></div>
+
+        <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="signin-title">
+
+            <div class="modal-header">
+                <h3 id="signin-title">Se connecter</h3>
+                <button type="button"
+                        class="modal-close"
+                        title="Fermer"
+                        aria-label="Fermer"
+                        data-close>
+                    &times;
+                </button>
+            </div>
+
+            <form method="post" action="{% url 'signin' %}" class="modal-form" novalidate>
+                {% csrf_token %}
+
+                {# Conserve la redirection 'next' si fournie #}
+                {% if request.GET.next or request.POST.next %}
+                    <input type="hidden" name="next" value="{{ request.GET.next|default:request.POST.next }}">
+                {% endif %}
+
+                {# Erreurs globales de connexion #}
+                {% if signin_error %}
+                    <div class="modal-error" role="alert">{{ signin_error }}</div>
+                {% endif %}
+                {% if signin_form and signin_form.non_field_errors %}
+                    <div class="modal-error" role="alert">
+                        {{ signin_form.non_field_errors }}
+                    </div>
+                {% endif %}
+
+                <label for="signin-username">Nom d'utilisateur</label>
+                <input id="signin-username" type="text" name="username" autocomplete="username" required>
+
+                <label for="signin-password">Mot de passe</label>
+                <input id="signin-password" type="password" name="password" autocomplete="current-password" required>
+
+                <div class="modal-actions">
+                    <button type="submit" class="auth-btn">Se connecter</button>
+                    <button type="button" class="auth-btn outline" data-close>Annuler</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {# JS spécifique à la page login #}
+    <script src="{% static 'js/login.js' %}"></script>
+
+    {# Ouvre la modale au chargement si demandé côté vue #}
+    {% if open_signin %}
+        <script>window.__OPEN_SIGNIN__ = true;</script>
+    {% endif %}
+{% endblock %}

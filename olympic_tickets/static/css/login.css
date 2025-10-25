@@ -1,0 +1,123 @@
+/* ========= Partie login ========= */
+
+.auth-form {
+    display: grid;
+    gap: 0.75rem;
+    max-width: 480px;
+    margin: 0 auto;
+}
+
+.auth-form label {
+    font-weight: 500;
+}
+
+.auth-form input {
+    width: 100%;
+    padding: 0.4rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+
+/* ========= Popup “Déjà inscrit ?” ========= */
+
+/* État fermé (cache + prépare l’animation) */
+.modal {
+    display: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+/* État ouvert (affiche + lance l’animation de fondu) */
+.modal.is-open {
+    display: block;
+    opacity: 1;
+}
+
+/* Fond assombri derrière le popup */
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+/* Fond visible quand le popup est ouverte */
+.modal.is-open .modal-backdrop {
+    opacity: 1;
+}
+
+/* Boîte de dialogue (centrée, animée) */
+.modal-dialog {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.97); /* léger zoom-out au départ */
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    padding: 1.5rem;
+
+    width: 92%;
+    max-width: 420px;
+    max-height: 90vh;       /* ne dépasse pas l’écran */
+    overflow-y: auto;       /* scroll interne si besoin */
+
+    opacity: 0;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+/* État final de la boîte (opaque + taille normale) */
+.modal.is-open .modal-dialog {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+/* En-tête du popup */
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: .75rem;
+}
+
+/* Bouton de fermeture “×” */
+.modal-close {
+    background: transparent;
+    border: 0;
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+/* Message d’erreur de connexion */
+.modal-error {
+    background: #fdecea;
+    color: #b33a3a;
+    border: 1px solid #f5c2c0;
+    border-radius: 8px;
+    padding: .5rem .75rem;
+    margin-bottom: .75rem;
+    font-size: .95rem;
+}
+
+/* Formulaire à l’intérieur du popup */
+.modal-form {
+    display: grid;
+    gap: .6rem;
+}
+
+.modal-form input {
+    width: 100%;
+    padding: .45rem .5rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+
+/* Boutons en bas du popup */
+.modal-actions {
+    display: flex;
+    gap: .5rem;
+    justify-content: flex-end;
+    margin-top: .25rem;
+}
