@@ -141,7 +141,6 @@ SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY = False # garder false sinon les formules ne marcheront pas
 SESSION_COOKIE_SECURE = not DEBUG # True en prod (HTTPS)
 CSRF_COOKIE_SECURE = not DEBUG # Idem
-
 SECURE_SSL_REDIRECT = not DEBUG # True en prod (HTTPS)
 SECURE_HSTS_SECONDS = 3600 if not DEBUG else 0 # >0 en prod
 

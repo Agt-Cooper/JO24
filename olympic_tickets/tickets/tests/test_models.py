@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 from django.db.models.deletion import ProtectedError
 from django.utils import timezone
 
-from tickets.models import Offer, Order, OrderItem, Profile  # Profile utilisé ailleurs dans ton projet
+from tickets.models import Offer, Order, OrderItem, Profile
 
 User = get_user_model()
 
@@ -98,15 +98,22 @@ class OrderItemModelTests(TestCase):
         self.order.delete()
         self.assertEqual(OrderItem.objects.count(), 0)
 
-    def test_protect_delete_on_offer(self):
-        OrderItem.objects.create(
-            order=self.order,
-            offer=self.offer,
-            quantity=1,
-            unit_price=self.offer.price,
-        )
-        with self.assertRaises(ProtectedError):
-            self.offer.delete()
+def test_delete_offer_cascades_to_orderitem(self):
+    '''
+    la suppression d'une offre supprime aussi les orderItem liés
+    '''
+    self.assertEqual(OrderItem.objects.count(), 1)
+    self.offer.delete()
+    self.assertEqual(OrderItem.objects.count(), 0)
+    # def test_protect_delete_on_offer(self):
+    #     OrderItem.objects.create(
+    #         order=self.order,
+    #         offer=self.offer,
+    #         quantity=1,
+    #         unit_price=self.offer.price,
+    #     )
+    #     with self.assertRaises(ProtectedError):
+    #         self.offer.delete()
 
     def test_quantity_negative_rejected_by_full_clean(self):
         # PositiveIntegerField rejette < 0 via validation (full_clean)
