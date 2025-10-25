@@ -13,22 +13,15 @@ First (optional but recommended), prepare a virtual environment:
 Change to the project root directory and run:
 ```
 python -m venv .env
-.env\Scripts\activate.ps1  --- source .venv/bin/activate
+source .venv/bin/activate
 ```
 
 Install project dependencies:
 ```
-pip install -r ./requirements.txt
+pip install -r requirements.txt
 ```
 
 ## Prepare Database
-
-(Optional)Import via MySQL Workbench (or similar) the sql file in the folder olympics_project.
-Install the SQL client :
-
-```
-pip install mysqlclient
-```
 
 Configure in 'settings.py' the DATABASES part with your datas. 
 You can also create an environment variable for your database connection data.
@@ -42,13 +35,7 @@ Change to the _olympic_project/_ directory.
 
 Create an .env file and enter your database login information.
 
-Verify the connexion with your database :
-```
-python manage.py inspectdb
-```
-
-It should show you the tables from the database.
-
+Verify the connexion with your database.
 
 Run the migrations :
 ```
@@ -56,9 +43,9 @@ python manage.py makemigrations
 python manage.py migrate
 ```
 
-If it's not already active after you run the server, you can execute the python script to generate products :
+Generate test offers (demo with script) :
 ```
-python populate_products.py
+python manage.py seed_offers --events"Natation,Athlétisme,Gymnastique"
 ```
 
 If needed, create a superuser with your credentials if you want to access the administration space :
@@ -73,9 +60,36 @@ By default :
 ## Run the Server
 
 ```
-python manage.py runserver  --- python3 manage.py runserver
+python manage.py runserver
 ```
 
 By default, the website is available at http://127.0.0.1:8000.
+
+Link to the deployed app with Heroku :
+
+https://jo24-tickets-jose-bace97e7a3b4.herokuapp.com/
+
+## Tests coverage
+
+Installation if needed :
+
+```
+pip install coverage
+```
+
+In order to access the coverage : 
+
+```
+coverage run 
+-- source=olympic_tickets,tickets \
+manage.py test -- settings:olympics_tickets.settings_test --keedb -v 2
+```
+
+To generate the html file of the current coverage :
+```
+coverage html
+open htmlcov/index.html
+```
+Actual coverage at 65%
 
 ©Author : Emmanuel Di Nicola
