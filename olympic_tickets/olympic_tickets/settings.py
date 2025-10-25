@@ -164,7 +164,7 @@ CACHES = {
 
 LANGUAGE_CODE = 'en-us' # ou 'fr-fr'
 
-TIME_ZONE = 'UTC'  # ou 'Europe/Paris'
+TIME_ZONE = 'Europe/Paris'
 
 USE_I18N = True
 

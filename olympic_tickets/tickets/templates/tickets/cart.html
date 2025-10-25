@@ -51,7 +51,7 @@
     <p>Votre panier est vide</p>
 {% endif %}
 
-{# actions a garder visible #}
+{% comment %}{# actions a garder visible #}
     <div class="cart-actions" style="margin-top:1rem;">
         {% if cart %}
             <form method="post" action="{% url 'checkout' %}" style="display: inline;">
@@ -66,5 +66,39 @@
         {% else %}
             <a href="{% url 'bundle_list' %}" class="auth-btn outline">Voir les offres</a>
         {% endif %}
+    </div>{% endcomment %}
+    <div class="cart-actions" style="margin-top:1rem;">
+
+    {% if cart %}
+
+        <form id="real-checkout-form" method="post" action="{% url 'checkout' %}" style="display:none;">
+            {% csrf_token %}
+        </form>
+
+
+        <button type="button" id="open-payment-modal" class="auth-btn">
+            Procéder au paiement
+        </button>
+    {% endif %}
+
+    {% if has_paid_orders %}
+        <a href="{% url 'my_purchases' %}" class="auth-btn outline">Voir mes billets</a>
+    {% else %}
+        <a href="{% url 'bundle_list' %}" class="auth-btn outline">Voir les offres</a>
+    {% endif %}
+</div>
+
+<!-- popup simu paiement -->
+<div id="payment-modal" class="payment-backdrop" style="display:none;">
+    <div class="payment-box">
+        <h3>Simulation de paiement</h3>
+        <p>Ce paiement est une simulation.<br> Cliquez sur « Payer » pour confirmer.</p>
+        <button id="confirm-pay" class="auth-btn">Payer</button>
+        <button id="cancel-pay" class="auth-btn outline">Annuler</button>
     </div>
+</div>
+
+    <link rel="stylesheet" href="{% static 'css/cart.css' %}">
+    <script src="{% static 'js/cart-payment.js' %}"></script>
+
 {% endblock %}
