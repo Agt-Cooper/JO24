@@ -45,7 +45,7 @@ PASSWORD_HASHERS = [
 ]
 
 # ---------------------------------------------------------
-# Optionnel : désactiver le CSRF en test si tu postes des forms
+# Optionnel : désactiver le CSRF en test si on poste des forms
 # (généralement pas obligatoire)
 # ---------------------------------------------------------
 # CSRF_COOKIE_SECURE = False

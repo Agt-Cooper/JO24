@@ -60,7 +60,7 @@ main {
 }
 
 .auth-actions {
-    margin-left: auto; /* pousse les actions à l'extrême droite */
+    margin-left: auto; /* actions à l'extrême droite */
     display: flex;
     align-items: center;
     gap: .75rem;
@@ -190,7 +190,7 @@ button {
     padding: 0.25rem;
 }
 
-/*-- Pour le message et bandeau du mail de vérification --*/
+/*-- Pour le message et bandeau du mail de vérification retiré pour le moment--*/
 /* Messages */
 .messages {
     margin: .5rem auto;
