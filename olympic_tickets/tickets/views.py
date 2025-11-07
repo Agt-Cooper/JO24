@@ -211,7 +211,8 @@ def signup_login_view(request):
             return redirect(next_url)
     else:
         form = SignupLoginForm()
-    return render(request, "tickets/login.html", {"form": form})
+    next_url = request.GET.get("next") or request.POST.get("next")
+    return render(request, "tickets/login.html", {"form": form, "next": next_url,})
 
 # Partie ajoutée pour le popup
 
