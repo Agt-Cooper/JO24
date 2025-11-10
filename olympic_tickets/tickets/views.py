@@ -332,7 +332,7 @@ def checkout_view(request):
     if request.method == "GET":
         if not cart:
             messages.error(request, "Votre panier est vide.")
-            return redirect("bundle") #ou cart, à voir
+            return redirect("bundle_list") #ou cart, à voir
         offers_ids = [int(k) for k in cart.keys()]
         offers = {o.id: o for o in Offer.objects.filter(id__in=offers_ids)}
         lines, total = [], 0
@@ -348,13 +348,13 @@ def checkout_view(request):
     #POST pour confirmer l'achat, crée la commande+items ainsi que générer la clé le QR et vider le panier
     if not cart:
         messages.error(request, "Votre panier est vide.")
-        return redirect("bundle")
+        return redirect("bundle_list")
 
     offer_ids = [int(k) for k in cart.keys()]
     offers = {o.id: o for o in Offer.objects.filter(id__in=offer_ids)}
     if not offers:
         messages.error(request, "Aucune offre valide dans le panier.")
-        return redirect("bundle")
+        return redirect("bundle_list")
 
     order = Order.objects.create(user=request.user, status="pending")
     #génère la clé 2 avant de générer les tickets
@@ -377,7 +377,7 @@ def checkout_view(request):
     if not created_any:
         order.delete()
         messages.error(request, "Votre panier est vide.")
-        return redirect("bundle")
+        return redirect("bundle_list")
     #paiement simulé avec statut payé
     order.status = "paid"
     order.save(update_fields=["status"])

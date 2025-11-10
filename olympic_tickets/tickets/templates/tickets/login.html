@@ -32,9 +32,6 @@
         {% if next %}
             <input type="hidden" name="next" value="{{ next }}">
         {% endif %}
-        {% comment %}{% if request.GET.next or request.POST.next %}
-            <input type="hidden" name="next" value="{{ request.GET.next|default:request.POST.next }}">
-        {% endif %}{% endcomment %}
 
         <button type="submit" class="auth-btn">Créer mon compte</button>
     </form>
@@ -73,9 +70,6 @@
                 {% if next %}
                     <input type="hidden" name="next" value="{{ next }}">
                 {% endif %}
-                {% comment %}{% if request.GET.next or request.POST.next %}
-                    <input type="hidden" name="next" value="{{ request.GET.next|default:request.POST.next }}">
-                {% endif %}{% endcomment %}
 
                 {# Erreurs globales de connexion #}
                 {% if signin_error %}
