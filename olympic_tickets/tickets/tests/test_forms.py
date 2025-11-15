@@ -32,8 +32,6 @@ class SignupLoginFormTests(TestCase):
             "password2": "different"
         })
         self.assertFalse(form.is_valid())
-        #self.assertFalse(form.is_valid())
-        #self.assertIn("password2", form.errors)
 
     def test_rejects_too_short_password(self):
         """

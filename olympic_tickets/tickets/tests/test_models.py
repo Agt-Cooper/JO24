@@ -105,15 +105,6 @@ def test_delete_offer_cascades_to_orderitem(self):
     self.assertEqual(OrderItem.objects.count(), 1)
     self.offer.delete()
     self.assertEqual(OrderItem.objects.count(), 0)
-    # def test_protect_delete_on_offer(self):
-    #     OrderItem.objects.create(
-    #         order=self.order,
-    #         offer=self.offer,
-    #         quantity=1,
-    #         unit_price=self.offer.price,
-    #     )
-    #     with self.assertRaises(ProtectedError):
-    #         self.offer.delete()
 
     def test_quantity_negative_rejected_by_full_clean(self):
         # PositiveIntegerField rejette < 0 via validation (full_clean)

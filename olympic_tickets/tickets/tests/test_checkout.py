@@ -4,16 +4,20 @@ from django.contrib.auth import get_user_model
 
 from tickets.models import Offer, Order, OrderItem
 
+User = get_user_model()
+
 class CheckoutTests(TestCase):
+    '''
+    checkout panier rempli
+    '''
     def setUp(self):
         self.client = Client()
-        User = get_user_model()
         self.user = User.objects.create_user(
             username="u1",
             email="u1@example.com",
             password="pass1234"
         )
-
+        #existence du profil avec signup_key
         if not hasattr(self.user, "profile"):
             from tickets.models import Profile
             Profile.objects.create(user=self.user, signup_key="TEST_SIGNUP_KEY")
@@ -43,7 +47,7 @@ class CheckoutTests(TestCase):
         self.assertEqual(order.user, self.user)
         self.assertEqual(order.status, "paid")
 
-        #Vérification si OrderItem créé avec clé finale + QR
+        #Vérification que OrderItem créé avec clé finale + QR
         self.assertEqual(order.items.count(), 1)
         it: OrderItem = order.items.first()
         self.assertEqual(it.offer, self.offer)
@@ -54,3 +58,39 @@ class CheckoutTests(TestCase):
         #Vide le panier
         session = self.client.session
         self.assertEqual(session.get("cart"), {})
+
+class CheckoutEmptyCartTests(TestCase):
+    '''
+    vérification avec panier vide
+    '''
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="checkout_user",
+            email="checkout@example.com",
+            password="StrongPassw0rd!"
+        )
+        self.client.login(username="checkout_user", password="StrongPassw0rd!")
+
+    def test_checkout_get_with_empty_cart_redirects_with_message(self):
+        """
+        Si le panier est vide (aucune clé 'cart' ou dict vide),
+        GET /checkout doit rediriger et afficher un message d'erreur.
+        """
+        # S'assurer que la session contient un panier vide
+        session = self.client.session
+        session["cart"] = {}
+        session.save()
+
+        url = reverse("checkout")
+        # follow=True pour suivre la redirection et récupérer la page finale + messages
+        resp = self.client.get(url, follow=True)
+
+        # Vérifie la redirection vers la page des offres
+        self.assertRedirects(resp, reverse("bundle_list"))
+
+        # Vérifie que le message "Votre panier est vide." est présent
+        messages = list(resp.context["messages"])
+        self.assertTrue(
+            any("Votre panier est vide" in m.message for m in messages),
+            "Le message d'erreur sur le panier vide devrait être affiché."
+        )
