@@ -67,5 +67,5 @@ jobs:
       - name: Run tests with coverage (settings_test)
         working-directory: olympic_tickets
         run: |
-          coverage run manage.py test --settings=olympic_tickets.settings_test
+          coverage run manage.py test --settings=olympic_tickets.settings_test --keepdb -v 2
           coverage report
