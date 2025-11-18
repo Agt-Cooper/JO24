@@ -10,6 +10,29 @@ jobs:
   tests:
     runs-on: ubuntu-latest
 
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: test_jo_db
+          MYSQL_USER: jo_test
+          MYSQL_PASSWORD: jo_test_pwd
+        ports:
+          - 3306:3306
+        # attendre que MySQL soit prêt
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      #variables utilisées par settings_test.py
+      DB_TEST_NAME: test_jo_db
+      DB_TEST_USER: jo_test
+      DB_TEST_PASSWORD: jo_test_pwd
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -29,6 +52,17 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install coverage
+
+      - name: Wait for MySQL
+        run: |
+          for i in {1..20}; do
+            if mysqladmin ping -h127.0.0.1 -ujo_test -pjo_test_pwd --silent; then
+              echo "MySQL is up!"
+              break
+            fi
+            echo "Waiting for MySQL..."
+            sleep 3
+          done
 
       - name: Run tests with coverage (settings_test)
         working-directory: olympic_tickets
