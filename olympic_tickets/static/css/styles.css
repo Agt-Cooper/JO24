@@ -237,3 +237,56 @@ button {
     gap: .75rem;
     justify-content: space-between;
 }
+/* Conteneurs plus tourné mobile */
+@media (max-width: 640px) {
+    body {
+        padding: 0 12px;
+    }
+
+    /* Boutons en largeur */
+    .auth-btn, .btn {
+        width: 100%;
+        text-align: center;
+    }
+
+    .sport-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    /* doit permettre le scroll horizontal si nécessaire */
+    table {
+        display: block;
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        border-collapse: collapse;
+    }
+
+    /* plus d'aérations pour les cellules */
+    th, td {
+        padding: .6rem .5rem;
+        font-size: 0.95rem;
+        white-space: nowrap;
+    }
+
+    input[type="number"],
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    button {
+        min-height: 44px;
+    }
+
+    /* Cart actions empilées */
+    .cart-actions {
+        display: grid;
+        gap: .5rem;
+    }
+}
+
+/*petit ajout (à confirmer) pour fluidité d'image*/
+img {
+    max-width: 100%;
+    height: auto;
+}
