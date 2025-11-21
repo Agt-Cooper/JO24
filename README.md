@@ -50,6 +50,12 @@ Change to the _olympic_project/_ directory.
 
 Create an .env file and enter your database login information.
 
+Then generate a secure SECRET_KEY
+```
+python -c "import secrets; print(secrets.token_urlsafe(64))"
+```
+You can now add your key for DJANGO_SECRET_KEY in your .env file
+
 Verify the connexion with your database.
 
 Run the migrations :
@@ -105,6 +111,5 @@ To generate the html file of the current coverage :
 coverage html
 open htmlcov/index.html
 ```
-Actual coverage at 65%
-
+Actual coverage at 80%
 ©Author : Emmanuel Di Nicola
