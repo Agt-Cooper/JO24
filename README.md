@@ -23,7 +23,22 @@ pip install -r requirements.txt
 
 ## Prepare Database
 
-Configure in 'settings.py' the DATABASES part with your datas. 
+MySQL has been installed previously, so you can now initiate the creation of your DATABASES.
+If not already done, you can create a user in MySQL by using your computer's terminal :
+
+```
+mysql -u root -p
+```
+Then you can create the DB :
+
+```
+CREATE DATABASE jo_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER 'jo_user'@'localhost' IDENTIFIED BY 'motdepassefort';
+GRANT ALL PRIVILEGES ON jo_db.* TO 'jo_user'@'localhost';
+FLUSH PRIVILEGES;
+EXIT;
+```
+Change the information as you see fit and then configure in 'settings.py' the DATABASES part with your datas. 
 You can also create an environment variable for your database connection data.
 If you do so, you will need to install the python library at the root racine of the project :
 
