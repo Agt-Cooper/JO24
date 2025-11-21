@@ -68,3 +68,52 @@ p strong {
             background:white;padding:20px;border-radius:10px;max-width:330px;text-align:center;
             box-shadow:0 5px 15px rgba(0,0,0,.25);
         }
+
+/* Affichage pour les petits écrans */
+@media (max-width: 640px) {
+    .cart-table,
+    .cart-table thead,
+    .cart-table tbody,
+    .cart-table th,
+    .cart-table td,
+    .cart-table tr {
+        display: block;
+        width: 100%;
+    }
+
+    /* On cache l’en-tête du tableau */
+    .cart-table thead {
+        display: none;
+    }
+
+    /* Chaque ligne devient une "carte" */
+    .cart-table tr {
+        margin-bottom: 1rem;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 0.5rem 0.75rem;
+        background: #fff;
+    }
+
+    /* Chaque cellule : label + valeur sur une ligne */
+    .cart-table td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.35rem 0;
+        font-size: 0.95rem;
+    }
+
+    /* Le libellé vient du data-label mis dans le HTML */
+    .cart-table td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        margin-right: 0.5rem;
+        color: #444;
+    }
+
+    /* Centrer un peu mieux quantité + boutons */
+    .cart-table td[data-label="Quantité"] > div {
+        margin-left: auto;
+    }
+}

@@ -9,7 +9,7 @@
     {# On place un mini formulaire caché juste pour récupérer le CSRF token #}
     <form id="csrf-form">{% csrf_token %}</form>
 
-    <table>
+    <table class="cart-table">
         <thead>
         <tr>
             <th>Offre</th>
@@ -22,19 +22,19 @@
         <tbody>
         {% for item in cart %}
             <tr id="row-{{ item.offer.id }}">
-                <td>{{ item.offer.name }}</td>
-                <td>{{ item.offer.price }} €</td>
-                <td>
+                <td data-label="Offre">{{ item.offer.name }}</td>
+                <td data-label="Prix">{{ item.offer.price }} €</td>
+                <td data-label="Quantité">
                     <div>
                         <button class="qty-btn" data-offer-id="{{ item.offer.id }}" data-action="dec">−</button>
                         <input type="number" class="qty-input" id="qty-{{ item.offer.id }}" value="{{ item.quantity }}" min="1" style="width:70px;">
                         <button class="qty-btn" data-offer-id="{{ item.offer.id }}" data-action="inc">+</button>
                     </div>
                 </td>
-                <td>
+                <td data-label="Total">
                     <span id="line-{{ item.offer.id }}">{{ item.line_total }} €</span>
                 </td>
-                <td>
+                <td data-label="Actions">
                     <button class="remove-btn" data-offer-id="{{ item.offer.id }}">Supprimer</button>
                 </td>
             </tr>
